@@ -20,7 +20,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
 
   return (
     <div className="min-h-screen bg-background dark:bg-background flex flex-col">
-      <header className="bg-card dark:bg-card shadow-sm border-b z-10">
+      <header className="sticky top-0 bg-card dark:bg-card shadow-sm border-b z-10">
         <div className="container mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
@@ -36,13 +36,13 @@ const MainLayout = ({ children }: MainLayoutProps) => {
                   to={link.path}
                   className={cn(
                     "flex items-center space-x-1 px-2 py-1 rounded-md transition-colors",
-                    currentPath.startsWith(link.path)
+                    currentPath === link.path || currentPath.startsWith(`${link.path}/`)
                       ? "text-primary font-medium"
                       : "text-muted-foreground hover:text-foreground"
                   )}
                 >
                   {link.icon}
-                  <span>{link.name}</span>
+                  <span className="hidden md:inline">{link.name}</span>
                 </Link>
               ))}
             </nav>
@@ -50,7 +50,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
         </div>
       </header>
       
-      <main className="flex-1 container mx-auto px-4 py-6">
+      <main className="flex-1">
         {children}
       </main>
       
