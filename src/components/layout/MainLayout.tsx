@@ -15,7 +15,6 @@ const MainLayout = ({ children }: MainLayoutProps) => {
   const navLinks = [
     { name: 'Vulnerability Database', path: '/', icon: <Database className="h-5 w-5" /> },
     { name: 'Security Blog', path: '/blog', icon: <BookOpen className="h-5 w-5" /> },
-    // Admin Panel link removed as requested
   ];
 
   return (
@@ -24,10 +23,12 @@ const MainLayout = ({ children }: MainLayoutProps) => {
         <div className="container mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
-              <Shield className="h-6 w-6 text-primary" />
-              <span className="text-lg font-bold">VulnVault</span>
+              <Link to="/" className="flex items-center space-x-2">
+                <Shield className="h-6 w-6 text-primary" />
+                <span className="text-lg font-bold">VulnVault</span>
+              </Link>
             </div>
-            <nav className="hidden md:flex space-x-6">
+            <nav className="flex space-x-6">
               {navLinks.map((link) => (
                 <Link
                   key={link.path}
