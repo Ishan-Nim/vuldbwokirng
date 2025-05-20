@@ -26,7 +26,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
             <div className="flex items-center space-x-2">
               <Link to="/" className="flex items-center space-x-2">
                 <Shield className="h-6 w-6 text-primary" />
-                <span className="text-lg font-bold">VulnVault</span>
+                <span className="text-lg font-bold">eHow Vulnerability</span>
               </Link>
             </div>
             <nav className="flex space-x-6">
@@ -56,7 +56,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
       
       <footer className="bg-card dark:bg-card border-t py-4">
         <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
-          <p>VulnVault - AI-powered CVE Knowledge Base © {new Date().getFullYear()}</p>
+          <p>eHow Vulnerability - AI-powered CVE Knowledge Base © {new Date().getFullYear()}</p>
         </div>
       </footer>
     </div>
