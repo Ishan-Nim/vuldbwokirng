@@ -5,7 +5,7 @@ import VulnerabilityCard from '@/components/vulnerabilities/VulnerabilityCard';
 import VulnerabilityFilters from '@/components/vulnerabilities/VulnerabilityFilters';
 import { VulnerabilityDetailModal } from '@/components/vulnerabilities/VulnerabilityDetailModal';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { AlertCircle, Shield, Loader2 } from 'lucide-react';
+import { AlertCircle, Shield, Loader2, Bot } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 
@@ -17,7 +17,7 @@ const Index = () => {
   const [vulnerabilities, setVulnerabilities] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   
-  // Fetch vulnerabilities from the database
+  // Fetch only AI-enriched vulnerabilities from the database
   useEffect(() => {
     const fetchVulnerabilities = async () => {
       try {
@@ -26,6 +26,7 @@ const Index = () => {
         const { data, error } = await supabase
           .from('vulnerabilities')
           .select('*')
+          .not('technical_impact', 'is', null)  // Only get entries with technical_impact (enriched)
           .order('created_at', { ascending: false });
           
         if (error) {
@@ -45,14 +46,14 @@ const Index = () => {
             vuln.severity === 'high' ? 7.5 :
             vuln.severity === 'medium' ? 5.0 : 3.0;
             
-          // Generate affected products from data or provide defaults
-          const affectedProducts = ['Unknown System'];
+          // Generate affected products from risk rating or provide defaults
+          const affectedProducts = vuln.affected_products || ['Unknown System'];
           
           // Generate exploit status based on risk rating
-          const exploitStatus = 
-            vuln.risk_rating === 'critical' ? 'Actively Exploited' : 
+          const exploitStatus = vuln.exploit_status || 
+            (vuln.risk_rating === 'critical' ? 'Actively Exploited' : 
             vuln.risk_rating === 'high' ? 'Exploit Available' : 
-            'No Known Exploits';
+            'No Known Exploits');
           
           return {
             id: vuln.id,
@@ -119,10 +120,11 @@ const Index = () => {
         <div>
           <h1 className="text-2xl font-bold tracking-tight flex items-center">
             <Shield className="mr-2 h-6 w-6 text-primary" />
-            Vulnerability Database
+            Enriched Vulnerability Database
           </h1>
-          <p className="text-muted-foreground mt-1">
-            AI-powered security intelligence for the latest CVEs and vulnerabilities
+          <p className="text-muted-foreground mt-1 flex items-center">
+            <Bot className="mr-2 h-4 w-4" />
+            AI-analyzed security intelligence with technical and business impact assessment
           </p>
         </div>
 
@@ -137,22 +139,22 @@ const Index = () => {
         {isLoading ? (
           <div className="flex justify-center items-center py-16">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            <span className="ml-3 text-lg font-medium">Loading vulnerabilities...</span>
+            <span className="ml-3 text-lg font-medium">Loading enriched vulnerabilities...</span>
           </div>
         ) : (
           <>
             <div className="flex items-center justify-between">
               <div className="text-sm text-muted-foreground">
-                Displaying <span className="font-medium">{filteredCount}</span> of <span className="font-medium">{totalCount}</span> vulnerabilities
+                Displaying <span className="font-medium">{filteredCount}</span> of <span className="font-medium">{totalCount}</span> AI-enriched vulnerabilities
               </div>
             </div>
 
             {filteredVulnerabilities.length === 0 ? (
               <Alert>
                 <AlertCircle className="h-4 w-4" />
-                <AlertTitle>No results found</AlertTitle>
+                <AlertTitle>No enriched vulnerabilities found</AlertTitle>
                 <AlertDescription>
-                  No vulnerabilities match your current search criteria. Try adjusting your filters or fetching new CVEs from the admin panel.
+                  No AI-enriched vulnerabilities match your current search criteria. Try adjusting your filters or enriching more CVEs from the admin panel.
                 </AlertDescription>
               </Alert>
             ) : (
