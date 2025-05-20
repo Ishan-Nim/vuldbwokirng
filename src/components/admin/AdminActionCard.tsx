@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,12 +6,7 @@ import { Clock, Play, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
-
-export interface LogEntry {
-  timestamp: string;
-  message: string;
-  type: 'info' | 'success' | 'warning' | 'error';
-}
+import { LogEntry } from './types';
 
 interface AdminActionCardProps {
   title: string;

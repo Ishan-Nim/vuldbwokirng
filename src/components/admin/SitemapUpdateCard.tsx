@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Loader2, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from "@/integrations/supabase/client";
-import { LogEntry } from '../admin/AdminActionCard';
+import { LogEntry } from './types';
 
 interface SitemapUpdateCardProps {
   onLogUpdate: (logs: Array<LogEntry>) => void;
