@@ -9,7 +9,7 @@ import JapaneseBlogGenerator from '@/components/admin/JapaneseBlogGenerator';
 import GenJapaneseBlogFunction from '@/components/admin/GenJapaneseBlogFunction';
 import { useQuery } from '@tanstack/react-query';
 import { format, parseISO } from 'date-fns';
-import { Clock, RefreshCw, FileText, ArrowDownUp } from 'lucide-react';
+import { Clock, RefreshCw, FileText, ArrowDownUp, AlertCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 
 // Define type for scheduled tasks
@@ -44,6 +44,7 @@ const Admin = () => {
     }
   };
 
+  // Query for total vulnerability count
   const { data: vulnerabilityCount, isLoading: isLoadingVulnCount } = useQuery({
     queryKey: ['vulnerabilityCount'],
     queryFn: async () => {
@@ -61,6 +62,7 @@ const Admin = () => {
     },
   });
 
+  // Query for enriched vulnerabilities count
   const { data: enrichedCount, isLoading: isLoadingEnrichedCount } = useQuery({
     queryKey: ['enrichedCount'],
     queryFn: async () => {
@@ -79,6 +81,10 @@ const Admin = () => {
     },
   });
 
+  // Calculate how many vulnerabilities need enrichment
+  const pendingEnrichmentCount = (vulnerabilityCount || 0) - (enrichedCount || 0);
+
+  // Query for blog count
   const { data: blogCount, isLoading: isLoadingBlogCount } = useQuery({
     queryKey: ['blogCount'],
     queryFn: async () => {
@@ -98,6 +104,7 @@ const Admin = () => {
     },
   });
 
+  // Query for scheduled tasks
   const { data: scheduledTasks, isLoading: isLoadingSchedules } = useQuery<ScheduledTask[]>({
     queryKey: ['scheduledTasks'],
     queryFn: async () => {
@@ -135,6 +142,17 @@ const Admin = () => {
   const enrichTask = findTaskSchedule('enrich-cve');
   const blogGenTask = findTaskSchedule('generate-blogs');
 
+  // Add new log entry when pending enrichment count changes
+  useEffect(() => {
+    if (pendingEnrichmentCount > 0) {
+      updateLogs('stats', [{
+        timestamp: new Date().toLocaleTimeString(),
+        message: `${pendingEnrichmentCount} entries waiting for enrichment`,
+        type: 'info'
+      }]);
+    }
+  }, [pendingEnrichmentCount]);
+
   return (
     <div className="container mx-auto p-4 min-h-screen">
       <h1 className="text-3xl font-bold mb-6">Admin Dashboard</h1>
@@ -161,10 +179,10 @@ const Admin = () => {
               icon={<ArrowDownUp className="h-4 w-4 text-muted-foreground" />}
             />
             <StatsCard 
-              title="AI Blogs" 
-              value={isLoadingBlogCount ? "Loading..." : `${blogCount}`}
-              description="Generated AI blog articles"
-              icon={<RefreshCw className="h-4 w-4 text-muted-foreground" />}
+              title="Waiting for Enrichment" 
+              value={isLoadingVulnCount || isLoadingEnrichedCount ? "Loading..." : `${pendingEnrichmentCount}`}
+              description="Entries waiting to be enriched"
+              icon={<AlertCircle className="h-4 w-4 text-muted-foreground" />}
             />
           </div>
           
@@ -235,6 +253,7 @@ const Admin = () => {
               title="Processing Logs" 
               description="Statistics processing activities"
               logs={statsLogs}
+              autoRefresh={true}
             />
           </div>
         </TabsContent>
@@ -283,10 +302,26 @@ const Admin = () => {
             title="Processing Logs" 
             description="Action tasks processing activities"
             logs={actionLogs}
+            autoRefresh={true}
           />
         </TabsContent>
         
         <TabsContent value="generators" className="space-y-4">
+          <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
+            <StatsCard 
+              title="Total Blog Articles" 
+              value={isLoadingBlogCount ? "Loading..." : `${blogCount}`}
+              description="Generated AI blog articles"
+              icon={<FileText className="h-4 w-4 text-muted-foreground" />}
+            />
+            <StatsCard 
+              title="Blogs Scheduled" 
+              value={blogGenTask?.next_run ? "Yes" : "No"}
+              description={blogGenTask?.next_run ? `Next generation at: ${formatDate(blogGenTask.next_run)}` : "No scheduled blog generation"}
+              icon={<Clock className="h-4 w-4 text-muted-foreground" />}
+            />
+          </div>
+          
           <JapaneseBlogGenerator />
           
           {/* Processing Logs for Generators tab */}
@@ -294,6 +329,7 @@ const Admin = () => {
             title="Processing Logs" 
             description="Generator tasks processing activities"
             logs={generatorLogs}
+            autoRefresh={true}
           />
         </TabsContent>
       </Tabs>

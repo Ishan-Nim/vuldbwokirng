@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Clock, RefreshCw } from 'lucide-react';
@@ -15,19 +15,33 @@ interface ProcessingLogsProps {
   title?: string;
   description?: string;
   logs?: LogEntry[];
+  autoRefresh?: boolean;
 }
 
 const ProcessingLogs: React.FC<ProcessingLogsProps> = ({ 
   title = "Processing Logs", 
   description = "Real-time logs of data processing operations",
-  logs = []
+  logs = [],
+  autoRefresh = false
 }) => {
   const [localLogs, setLocalLogs] = useState<LogEntry[]>(logs);
   
   // Update local logs when props change
-  React.useEffect(() => {
+  useEffect(() => {
     setLocalLogs(logs);
   }, [logs]);
+  
+  // Auto refresh effect - adds a dummy update every 30 seconds if enabled
+  useEffect(() => {
+    if (!autoRefresh) return;
+    
+    const interval = setInterval(() => {
+      // This just triggers a re-render
+      setLocalLogs(current => [...current]);
+    }, 30000);
+    
+    return () => clearInterval(interval);
+  }, [autoRefresh]);
   
   const getLogBadgeColor = (type: string) => {
     switch(type) {
