@@ -3,8 +3,8 @@ import React from 'react';
 import MainLayout from '@/components/layout/MainLayout';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { AdminActionCard } from '@/components/admin/AdminActionCard';
-import { StatsCard } from '@/components/admin/StatsCard';
+import AdminActionCard from '@/components/admin/AdminActionCard';
+import StatsCard from '@/components/admin/StatsCard';
 import GenJapaneseBlogFunction from '@/components/admin/GenJapaneseBlogFunction';
 import { BookOpenCheck, Database, Bot } from 'lucide-react';
 
