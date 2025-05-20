@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Clock, RefreshCw, ExternalLink, Copy, CheckCheck } from 'lucide-react';
+import { Clock, RefreshCw, ExternalLink, Copy, CheckCheck, Link } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -42,6 +42,7 @@ const ProcessingLogs: React.FC<ProcessingLogsProps> = ({
   const [localLogs, setLocalLogs] = useState<LogEntry[]>(logs);
   const [localBlogLinks, setLocalBlogLinks] = useState<BlogLink[]>(blogLinks);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [copiedLogIndex, setCopiedLogIndex] = useState<number | null>(null);
   const navigate = useNavigate();
   
   // Update local logs when props change
@@ -91,6 +92,17 @@ const ProcessingLogs: React.FC<ProcessingLogsProps> = ({
     
     setTimeout(() => {
       setCopiedId(null);
+    }, 2000);
+  };
+
+  const copyLog = (logIndex: number) => {
+    const logMessage = localLogs[logIndex].message;
+    navigator.clipboard.writeText(logMessage);
+    setCopiedLogIndex(logIndex);
+    toast.success('Log message copied to clipboard');
+    
+    setTimeout(() => {
+      setCopiedLogIndex(null);
     }, 2000);
   };
 
@@ -167,7 +179,7 @@ const ProcessingLogs: React.FC<ProcessingLogsProps> = ({
         ) : localLogs.length > 0 ? (
           <div className="bg-muted/50 p-4 rounded-md font-mono text-sm max-h-[300px] overflow-y-auto">
             {localLogs.map((log, index) => (
-              <div key={index} className="mb-1 flex">
+              <div key={index} className="mb-1 flex items-center group">
                 <span className="text-muted-foreground mr-2">[{log.timestamp}]</span>
                 <Badge 
                   variant="secondary" 
@@ -175,7 +187,19 @@ const ProcessingLogs: React.FC<ProcessingLogsProps> = ({
                 >
                   {log.type.toUpperCase()}
                 </Badge>
-                <span>{log.message}</span>
+                <span className="flex-grow">{log.message}</span>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => copyLog(index)}
+                  className="opacity-0 group-hover:opacity-100 h-6 w-6 p-0"
+                >
+                  {copiedLogIndex === index ? (
+                    <CheckCheck className="h-3.5 w-3.5" />
+                  ) : (
+                    <Copy className="h-3.5 w-3.5" />
+                  )}
+                </Button>
               </div>
             ))}
           </div>
