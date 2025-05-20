@@ -21,6 +21,7 @@ interface AdminActionCardProps {
   task?: string;
   nextScheduled?: string | null;
   onLogUpdate?: (logs: Array<{timestamp: string, message: string, type: 'info' | 'success' | 'warning' | 'error'}>) => void;
+  onSuccess?: (count?: number) => void;
 }
 
 const AdminActionCard: React.FC<AdminActionCardProps> = ({
@@ -34,7 +35,8 @@ const AdminActionCard: React.FC<AdminActionCardProps> = ({
   functionName,
   task,
   nextScheduled,
-  onLogUpdate
+  onLogUpdate,
+  onSuccess
 }) => {
   const [isLoading, setIsLoading] = useState(externalIsLoading || false);
   
@@ -51,19 +53,19 @@ const AdminActionCard: React.FC<AdminActionCardProps> = ({
   const getButtonText = () => {
     if (buttonText) return buttonText;
     
-    if (functionName === 'fetch-cve-data') return 'Run RSS Fetch';
-    if (functionName === 'enrich-cve-data') return 'Start Enrichment';
-    if (functionName === 'scheduled-tasks' && task === 'fetch-cve') return 'Run Task';
-    if (functionName === 'scheduled-tasks' && task === 'generate-blogs') return 'Generate Blogs';
-    return 'Execute';
+    if (functionName === 'fetch-cve-data') return 'RSSフェッチを実行';
+    if (functionName === 'enrich-cve-data') return '強化を開始';
+    if (functionName === 'scheduled-tasks' && task === 'fetch-cve') return 'タスクを実行';
+    if (functionName === 'scheduled-tasks' && task === 'generate-blogs') return 'ブログを生成';
+    return '実行';
   };
   
   const formatScheduledTime = (timeString: string | null) => {
-    if (!timeString) return "Not scheduled";
+    if (!timeString) return "予定なし";
     try {
       return format(new Date(timeString), 'yyyy-MM-dd HH:mm:ss');
     } catch (error) {
-      return "Invalid date";
+      return "無効な日付";
     }
   };
 
@@ -89,37 +91,41 @@ const AdminActionCard: React.FC<AdminActionCardProps> = ({
     setIsLoading(true);
     
     try {
-      addLog(`Starting: ${title} operation...`);
+      addLog(`開始: ${title} 操作...`);
       
       let response;
       
       if (functionName === 'fetch-cve-data') {
-        addLog("Starting RSS feed data fetch...");
+        addLog("RSSフィードのデータフェッチを開始...");
         response = await supabase.functions.invoke('fetch-cve-data');
+        
+        if (response.data?.insertedCount && onSuccess) {
+          onSuccess(response.data.insertedCount);
+        }
       } else if (functionName === 'enrich-cve-data') {
-        addLog("Starting data enrichment process...");
+        addLog("データ強化処理を開始...");
         response = await supabase.functions.invoke('enrich-cve-data');
       } else if (functionName === 'scheduled-tasks') {
         // Call the scheduled-tasks function
-        addLog(`Running scheduled task: ${task}`);
+        addLog(`スケジュールされたタスクを実行: ${task}`);
         response = await supabase.functions.invoke('scheduled-tasks', {
           body: { task }
         });
         
         if (task === 'generate-blogs' && response.data?.topics) {
-          addLog(`Generated blog topics: ${response.data.topics.length}`, 'success');
+          addLog(`生成されたブログトピック: ${response.data.topics.length}`, 'success');
           response.data.topics.forEach((topic: string, index: number) => {
             if (index < 5) {
-              addLog(`Topic ${index + 1}: ${topic}`);
+              addLog(`トピック ${index + 1}: ${topic}`);
             }
           });
           if (response.data.topics.length > 5) {
-            addLog(`... and ${response.data.topics.length - 5} more topics`);
+            addLog(`... さらに ${response.data.topics.length - 5} 個のトピックがあります`);
           }
         }
       } else {
         // Call the specific function
-        addLog(`Executing function: ${functionName}`);
+        addLog(`関数を実行: ${functionName}`);
         response = await supabase.functions.invoke(functionName);
       }
       
@@ -128,12 +134,12 @@ const AdminActionCard: React.FC<AdminActionCardProps> = ({
       }
       
       console.log(`${functionName} response:`, response.data);
-      addLog(`${title} completed successfully`, 'success');
-      toast.success(`${title} completed successfully`);
+      addLog(`${title} が正常に完了しました`, 'success');
+      toast.success(`${title} が正常に完了しました`);
     } catch (error) {
       console.error(`Error in ${functionName}:`, error);
-      addLog(`Error: ${error.message || 'Unknown error occurred'}`, 'error');
-      toast.error(`Error: ${error.message || 'Unknown error occurred'}`);
+      addLog(`エラー: ${error.message || '不明なエラーが発生しました'}`, 'error');
+      toast.error(`エラー: ${error.message || '不明なエラーが発生しました'}`);
     } finally {
       setIsLoading(false);
     }
@@ -152,7 +158,7 @@ const AdminActionCard: React.FC<AdminActionCardProps> = ({
         {nextScheduled && (
           <div className="mt-2 flex items-center text-xs text-muted-foreground">
             <Clock className="h-3 w-3 mr-1" />
-            <span>Next scheduled: {formatScheduledTime(nextScheduled)}</span>
+            <span>次回予定: {formatScheduledTime(nextScheduled)}</span>
           </div>
         )}
       </CardHeader>
@@ -166,7 +172,7 @@ const AdminActionCard: React.FC<AdminActionCardProps> = ({
           {isLoading ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Processing...
+              処理中...
             </>
           ) : getButtonText()}
         </Button>

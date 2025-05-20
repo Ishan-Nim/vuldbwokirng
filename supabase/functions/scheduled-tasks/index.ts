@@ -138,6 +138,42 @@ serve(async (req) => {
         }
       );
     }
+    else if (task === "clear-database") {
+      // Clear all tables in the correct order to respect foreign key constraints
+      // Delete from references table
+      await supabase
+        .from('references')
+        .delete()
+        .neq('id', '00000000-0000-0000-0000-000000000000');
+      
+      // Delete from remediations table
+      await supabase
+        .from('remediations')
+        .delete()
+        .neq('id', '00000000-0000-0000-0000-000000000000');
+      
+      // Delete from threat_modeling table
+      await supabase
+        .from('threat_modeling')
+        .delete()
+        .neq('id', '00000000-0000-0000-0000-000000000000');
+      
+      // Delete from vulnerabilities table
+      await supabase
+        .from('vulnerabilities')
+        .delete()
+        .neq('id', '00000000-0000-0000-0000-000000000000');
+      
+      return new Response(
+        JSON.stringify({ 
+          success: true, 
+          message: "Database cleared successfully"
+        }),
+        { 
+          headers: { ...corsHeaders, "Content-Type": "application/json" } 
+        }
+      );
+    }
     else {
       throw new Error(`Unknown task type: ${task}`);
     }

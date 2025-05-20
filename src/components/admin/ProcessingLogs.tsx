@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Clock, RefreshCw } from 'lucide-react';
+import { Clock, RefreshCw, Counter } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export interface LogEntry {
@@ -16,13 +16,18 @@ interface ProcessingLogsProps {
   description?: string;
   logs?: LogEntry[];
   autoRefresh?: boolean;
+  counter?: {
+    label: string;
+    value: number;
+  };
 }
 
 const ProcessingLogs: React.FC<ProcessingLogsProps> = ({ 
-  title = "Processing Logs", 
-  description = "Real-time logs of data processing operations",
+  title = "処理ログ", 
+  description = "データ処理操作のリアルタイムログ",
   logs = [],
-  autoRefresh = false
+  autoRefresh = false,
+  counter
 }) => {
   const [localLogs, setLocalLogs] = useState<LogEntry[]>(logs);
   
@@ -67,16 +72,24 @@ const ProcessingLogs: React.FC<ProcessingLogsProps> = ({
             </CardTitle>
             <CardDescription>{description}</CardDescription>
           </div>
-          <Button variant="outline" size="sm" onClick={clearLogs}>
-            Clear
-          </Button>
+          <div className="flex items-center gap-4">
+            {counter && (
+              <div className="flex items-center px-3 py-1 bg-muted rounded-md">
+                <span className="text-sm font-medium">{counter.label}:</span>
+                <span className="ml-1 text-sm font-bold">{counter.value}</span>
+              </div>
+            )}
+            <Button variant="outline" size="sm" onClick={clearLogs}>
+              クリア
+            </Button>
+          </div>
         </div>
       </CardHeader>
       <CardContent>
         {localLogs.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">
             <RefreshCw className="mx-auto h-8 w-8 opacity-40" />
-            <p className="mt-2">No logs available. Run an operation to generate logs.</p>
+            <p className="mt-2">ログはありません。操作を実行してログを生成してください。</p>
           </div>
         ) : (
           <div className="bg-muted/50 p-4 rounded-md font-mono text-sm max-h-[300px] overflow-y-auto">
