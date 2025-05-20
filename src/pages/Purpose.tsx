@@ -12,7 +12,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ServiceFormSelector } from '@/components/purpose/ServiceFormSelector';
-import { CompanyProfile, ServiceType, ServiceConfig } from '@/types/purpose';
+import { CompanyProfile, ServiceType, ServiceConfig, WebServiceConfig, CloudServiceConfig, NetworkServiceConfig, MobileServiceConfig } from '@/types/purpose';
 
 const companySchema = z.object({
   companyName: z.string().min(2, { message: "Company name is required" }),
@@ -246,24 +246,32 @@ const Purpose = () => {
       
       // Initialize service config with default prices based on service type
       if (!serviceConfig[service]) {
-        const defaultConfig: any = {};
+        let defaultConfig: Partial<WebServiceConfig | CloudServiceConfig | NetworkServiceConfig | MobileServiceConfig> = {};
         
         switch (service) {
           case 'web':
-            defaultConfig.type = 'Corporate Website';
-            defaultConfig.price = 150;
+            defaultConfig = {
+              type: 'Corporate Website',
+              price: 150,
+            };
             break;
           case 'cloud':
-            defaultConfig.type = 'Mid-Level Infra';
-            defaultConfig.price = 300;
+            defaultConfig = {
+              type: 'Mid-Level Infra',
+              price: 300,
+            };
             break;
           case 'network':
-            defaultConfig.type = 'Secure External Network';
-            defaultConfig.price = 250;
+            defaultConfig = {
+              type: 'Secure External Network',
+              price: 250,
+            };
             break;
           case 'mobile':
-            defaultConfig.type = 'Mid-Level App';
-            defaultConfig.price = 200;
+            defaultConfig = {
+              type: 'Mid-Level App',
+              price: 200,
+            };
             break;
         }
         
@@ -305,8 +313,8 @@ const Purpose = () => {
     let total = 0;
     
     Object.entries(serviceConfig).forEach(([service, config]) => {
-      if (selectedServices[service as ServiceType]) {
-        total += config.price || 0;
+      if (selectedServices[service as ServiceType] && config) {
+        total += (config as any).price || 0;
       }
     });
     
@@ -612,32 +620,32 @@ const Purpose = () => {
                         {selectedServices.web && serviceConfig.web && (
                           <tr>
                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">Web Security Testing</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm">{serviceConfig.web.type}</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-right">{serviceConfig.web.price}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm">{(serviceConfig.web as WebServiceConfig).type}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-right">{(serviceConfig.web as WebServiceConfig).price}</td>
                           </tr>
                         )}
                         
                         {selectedServices.cloud && serviceConfig.cloud && (
                           <tr>
                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">Cloud Assessment</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm">{serviceConfig.cloud.type}</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-right">{serviceConfig.cloud.price}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm">{(serviceConfig.cloud as CloudServiceConfig).type}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-right">{(serviceConfig.cloud as CloudServiceConfig).price}</td>
                           </tr>
                         )}
                         
                         {selectedServices.network && serviceConfig.network && (
                           <tr>
                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">Network Pentest</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm">{serviceConfig.network.type}</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-right">{serviceConfig.network.price}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm">{(serviceConfig.network as NetworkServiceConfig).type}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-right">{(serviceConfig.network as NetworkServiceConfig).price}</td>
                           </tr>
                         )}
                         
                         {selectedServices.mobile && serviceConfig.mobile && (
                           <tr>
                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">Mobile App Testing</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm">{serviceConfig.mobile.type}</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-right">{serviceConfig.mobile.price}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm">{(serviceConfig.mobile as MobileServiceConfig).type}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-right">{(serviceConfig.mobile as MobileServiceConfig).price}</td>
                           </tr>
                         )}
                       </tbody>
@@ -646,8 +654,8 @@ const Purpose = () => {
                           <th className="px-6 py-4 text-left text-sm font-semibold" colSpan={2}>Subtotal</th>
                           <th className="px-6 py-4 text-right text-sm font-semibold">
                             {Object.entries(serviceConfig).reduce((acc, [service, config]) => {
-                              if (selectedServices[service as ServiceType]) {
-                                return acc + (config.price || 0);
+                              if (selectedServices[service as ServiceType] && config) {
+                                return acc + ((config as any).price || 0);
                               }
                               return acc;
                             }, 0)}
@@ -658,8 +666,8 @@ const Purpose = () => {
                             <th className="px-6 py-4 text-left text-sm font-semibold" colSpan={2}>Japanese Listed Company Premium (+12%)</th>
                             <th className="px-6 py-4 text-right text-sm font-semibold">
                               +{Math.round(Object.entries(serviceConfig).reduce((acc, [service, config]) => {
-                                if (selectedServices[service as ServiceType]) {
-                                  return acc + (config.price || 0);
+                                if (selectedServices[service as ServiceType] && config) {
+                                  return acc + ((config as any).price || 0);
                                 }
                                 return acc;
                               }, 0) * 0.12)}
