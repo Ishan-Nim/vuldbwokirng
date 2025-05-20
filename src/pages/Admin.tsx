@@ -12,6 +12,7 @@ import { Clock, RefreshCw, FileText, ArrowDownUp, AlertCircle, Database } from '
 import { supabase } from '@/integrations/supabase/client';
 import SitemapUpdateCard from '@/components/admin/SitemapUpdateCard';
 import SitemapViewer from '@/components/admin/SitemapViewer';
+import AnalyticsPanel from '@/components/admin/AnalyticsPanel';
 
 // Define type for scheduled tasks
 interface ScheduledTask {
@@ -225,11 +226,12 @@ const Admin = () => {
       <h1 className="text-3xl font-bold mb-6">Admin Dashboard</h1>
       
       <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="stats">Statistics</TabsTrigger>
           <TabsTrigger value="actions">Actions</TabsTrigger>
           <TabsTrigger value="generators">Generators</TabsTrigger>
           <TabsTrigger value="sitemap">Sitemap</TabsTrigger>
+          <TabsTrigger value="analytics">Analytics</TabsTrigger>
         </TabsList>
         
         <TabsContent value="stats" className="space-y-4">
@@ -430,6 +432,10 @@ const Admin = () => {
               autoRefresh={true}
             />
           </div>
+        </TabsContent>
+        
+        <TabsContent value="analytics" className="space-y-4">
+          <AnalyticsPanel />
         </TabsContent>
       </Tabs>
     </div>
