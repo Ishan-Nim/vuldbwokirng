@@ -27,13 +27,13 @@ const ServiceCard = ({ type, isSelected, onClick }: ServiceCardProps) => {
   const getTitle = () => {
     switch (type) {
       case 'web':
-        return { jp: 'ウェブセキュリティテスト', en: 'Web Security Testing' };
+        return { en: 'Web Security Testing', jp: 'ウェブセキュリティテスト' };
       case 'cloud':
-        return { jp: 'クラウド評価', en: 'Cloud Assessment' };
+        return { en: 'Cloud Assessment', jp: 'クラウド評価' };
       case 'network':
-        return { jp: 'ネットワークペンテスト', en: 'Network Pentest' };
+        return { en: 'Network Pentest', jp: 'ネットワークペンテスト' };
       case 'mobile':
-        return { jp: 'モバイルアプリテスト', en: 'Mobile App Testing' };
+        return { en: 'Mobile App Testing', jp: 'モバイルアプリテスト' };
     }
   };
 
@@ -41,23 +41,23 @@ const ServiceCard = ({ type, isSelected, onClick }: ServiceCardProps) => {
     switch (type) {
       case 'web':
         return { 
-          jp: 'ウェブアプリケーションの脆弱性評価', 
-          en: 'Assessment of web applications for vulnerabilities' 
+          en: 'Assessment of web applications for vulnerabilities', 
+          jp: 'ウェブアプリケーションの脆弱性評価'
         };
       case 'cloud':
         return { 
-          jp: 'クラウドインフラとセキュリティ管理の評価', 
-          en: 'Review cloud infrastructure and security controls' 
+          en: 'Review cloud infrastructure and security controls', 
+          jp: 'クラウドインフラとセキュリティ管理の評価'
         };
       case 'network':
         return { 
-          jp: '包括的なネットワークセキュリティ評価', 
-          en: 'Comprehensive network security assessment' 
+          en: 'Comprehensive network security assessment', 
+          jp: '包括的なネットワークセキュリティ評価'
         };
       case 'mobile':
         return { 
-          jp: 'モバイルアプリケーションのセキュリティ評価', 
-          en: 'Security assessment for mobile applications' 
+          en: 'Security assessment for mobile applications', 
+          jp: 'モバイルアプリケーションのセキュリティ評価'
         };
     }
   };
@@ -74,14 +74,14 @@ const ServiceCard = ({ type, isSelected, onClick }: ServiceCardProps) => {
         <CardTitle className="text-lg flex items-center">
           {getIcon()}
           <div>
-            <span>{title.jp}</span>
-            <span className="block text-xs text-muted-foreground">{title.en}</span>
+            <span>{title.en}</span>
+            <span className="block text-xs text-muted-foreground">{title.jp}</span>
           </div>
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <p className="text-sm">{description.jp}</p>
-        <p className="text-xs text-muted-foreground">{description.en}</p>
+        <p className="text-sm">{description.en}</p>
+        <p className="text-xs text-muted-foreground">{description.jp}</p>
         {isSelected && <Check className="h-5 w-5 text-green-500 mt-2" />}
       </CardContent>
     </Card>
