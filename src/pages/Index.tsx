@@ -17,7 +17,7 @@ const Index = () => {
   const [vulnerabilities, setVulnerabilities] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   
-  // Fetch only AI-enriched vulnerabilities from the database
+  // Fetch AI-enriched vulnerabilities from the database
   useEffect(() => {
     const fetchVulnerabilities = async () => {
       try {
@@ -27,7 +27,6 @@ const Index = () => {
           .from('vulnerabilities')
           .select('*')
           .not('technical_impact', 'is', null)  // Only get entries with technical_impact (enriched)
-          .is('severity', null) // Get only RSS enriched vulnerabilities, not Japanese blogs
           .order('created_at', { ascending: false });
           
         if (error) {
