@@ -20,6 +20,7 @@ interface AdminActionCardProps {
   functionName?: string;
   task?: string;
   nextScheduled?: string | null;
+  onLogUpdate?: (logs: Array<{timestamp: string, message: string, type: 'info' | 'success' | 'warning' | 'error'}>) => void;
 }
 
 const AdminActionCard: React.FC<AdminActionCardProps> = ({
@@ -32,7 +33,8 @@ const AdminActionCard: React.FC<AdminActionCardProps> = ({
   className,
   functionName,
   task,
-  nextScheduled
+  nextScheduled,
+  onLogUpdate
 }) => {
   const [isLoading, setIsLoading] = useState(externalIsLoading || false);
   
@@ -64,6 +66,14 @@ const AdminActionCard: React.FC<AdminActionCardProps> = ({
       return "Invalid date";
     }
   };
+
+  const addLog = (message: string, type: 'info' | 'success' | 'warning' | 'error' = 'info') => {
+    if (onLogUpdate) {
+      const now = new Date();
+      const timestamp = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`;
+      onLogUpdate([{timestamp, message, type}]);
+    }
+  };
   
   const handleClick = async () => {
     if (externalOnClick) {
@@ -77,16 +87,39 @@ const AdminActionCard: React.FC<AdminActionCardProps> = ({
     }
     
     setIsLoading(true);
+    
     try {
+      addLog(`Starting: ${title} operation...`);
+      
       let response;
       
-      if (functionName === 'scheduled-tasks') {
+      if (functionName === 'fetch-cve-data') {
+        addLog("Starting RSS feed data fetch...");
+        response = await supabase.functions.invoke('fetch-cve-data');
+      } else if (functionName === 'enrich-cve-data') {
+        addLog("Starting data enrichment process...");
+        response = await supabase.functions.invoke('enrich-cve-data');
+      } else if (functionName === 'scheduled-tasks') {
         // Call the scheduled-tasks function
+        addLog(`Running scheduled task: ${task}`);
         response = await supabase.functions.invoke('scheduled-tasks', {
           body: { task }
         });
+        
+        if (task === 'generate-blogs' && response.data?.topics) {
+          addLog(`Generated blog topics: ${response.data.topics.length}`, 'success');
+          response.data.topics.forEach((topic: string, index: number) => {
+            if (index < 5) {
+              addLog(`Topic ${index + 1}: ${topic}`);
+            }
+          });
+          if (response.data.topics.length > 5) {
+            addLog(`... and ${response.data.topics.length - 5} more topics`);
+          }
+        }
       } else {
         // Call the specific function
+        addLog(`Executing function: ${functionName}`);
         response = await supabase.functions.invoke(functionName);
       }
       
@@ -95,9 +128,11 @@ const AdminActionCard: React.FC<AdminActionCardProps> = ({
       }
       
       console.log(`${functionName} response:`, response.data);
+      addLog(`${title} completed successfully`, 'success');
       toast.success(`${title} completed successfully`);
     } catch (error) {
       console.error(`Error in ${functionName}:`, error);
+      addLog(`Error: ${error.message || 'Unknown error occurred'}`, 'error');
       toast.error(`Error: ${error.message || 'Unknown error occurred'}`);
     } finally {
       setIsLoading(false);

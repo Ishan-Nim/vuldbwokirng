@@ -166,13 +166,13 @@ const Blog = () => {
     <MainLayout>
       <div className="py-6 space-y-6">
         <Button onClick={handleBack} variant="outline" size="sm">
-          <ArrowLeft className="mr-2 h-4 w-4" /> ブログ一覧に戻る
+          <ArrowLeft className="mr-2 h-4 w-4" /> Back to Blog List
         </Button>
 
         <div>
           <div className="flex items-center space-x-2 mb-2">
             <Badge className={`${vulnerability.severity === '高' ? 'bg-destructive' : vulnerability.severity === '中' ? 'bg-warning' : 'bg-success'}`}>
-              {vulnerability.severity}リスク
+              {vulnerability.severity} Risk
             </Badge>
             <Badge variant="outline">{vulnerability.risk_rating}</Badge>
             <span className="text-sm text-muted-foreground">
@@ -186,17 +186,17 @@ const Blog = () => {
 
         <Tabs defaultValue="overview">
           <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="overview">概要</TabsTrigger>
-            <TabsTrigger value="technical">技術的詳細</TabsTrigger>
-            <TabsTrigger value="remediation">対策</TabsTrigger>
-            <TabsTrigger value="resources">参考資料</TabsTrigger>
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="technical">Technical Details</TabsTrigger>
+            <TabsTrigger value="remediation">Remediation</TabsTrigger>
+            <TabsTrigger value="resources">Resources</TabsTrigger>
           </TabsList>
 
           {/* Overview Tab */}
           <TabsContent value="overview" className="space-y-4 mt-4">
             <Card>
               <CardHeader>
-                <CardTitle>脆弱性の説明</CardTitle>
+                <CardTitle>Vulnerability Description</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="whitespace-pre-wrap">{vulnerability.description}</p>
@@ -205,15 +205,15 @@ const Blog = () => {
 
             <Card>
               <CardHeader>
-                <CardTitle>影響</CardTitle>
+                <CardTitle>Impact</CardTitle>
               </CardHeader>
               <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <h3 className="text-lg font-medium mb-2">技術的影響</h3>
+                  <h3 className="text-lg font-medium mb-2">Technical Impact</h3>
                   <p>{vulnerability.technical_impact}</p>
                 </div>
                 <div>
-                  <h3 className="text-lg font-medium mb-2">ビジネスへの影響</h3>
+                  <h3 className="text-lg font-medium mb-2">Business Impact</h3>
                   <p>{vulnerability.business_impact}</p>
                 </div>
               </CardContent>
@@ -277,31 +277,36 @@ const Blog = () => {
             )}
           </TabsContent>
 
-          {/* Remediation Tab */}
+          {/* Remediation Tab - Improved readability */}
           <TabsContent value="remediation" className="mt-4">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <CheckCircle className="mr-2 h-5 w-5 text-green-500" />
-                  推奨される対策
+                  Recommended Measures
                 </CardTitle>
-                <CardDescription>この脆弱性を修正するための推奨事項</CardDescription>
+                <CardDescription>Recommendations to fix this vulnerability</CardDescription>
               </CardHeader>
               <CardContent>
                 {remediations.length === 0 ? (
-                  <p className="text-muted-foreground">対策情報はありません。</p>
+                  <p className="text-muted-foreground">No remediation information available.</p>
                 ) : (
-                  <div className="space-y-4">
+                  <div className="space-y-6">
                     {remediations.map((remediation, index) => (
-                      <div key={remediation.id} className={index > 0 ? "pt-4 border-t" : ""}>
-                        <div className="flex justify-between items-start mb-2">
-                          <h3 className="font-medium">{remediation.recommendation}</h3>
+                      <div key={remediation.id} className={index > 0 ? "pt-6 border-t" : ""}>
+                        <div className="flex justify-between items-start mb-3">
+                          <h3 className="font-medium text-lg">{index + 1}. {remediation.recommendation}</h3>
                           <Badge variant={
                             remediation.priority_level === "必須" ? "destructive" : 
                             remediation.priority_level === "推奨" ? "default" : "outline"
-                          }>
-                            {remediation.priority_level}
+                          } className="ml-2">
+                            {remediation.priority_level === "必須" ? "Critical" : 
+                             remediation.priority_level === "推奨" ? "Recommended" : 
+                             "Optional"}
                           </Badge>
+                        </div>
+                        <div className="pl-5 pr-2 py-2 bg-muted/50 rounded-md">
+                          <p className="text-sm leading-6">{remediation.recommendation}</p>
                         </div>
                       </div>
                     ))}
@@ -317,13 +322,13 @@ const Blog = () => {
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <BookOpen className="mr-2 h-5 w-5" />
-                  参考資料とリソース
+                  References and Resources
                 </CardTitle>
-                <CardDescription>この脆弱性に関する追加情報へのリンク</CardDescription>
+                <CardDescription>Links to additional information about this vulnerability</CardDescription>
               </CardHeader>
               <CardContent>
                 {references.length === 0 ? (
-                  <p className="text-muted-foreground">参考資料はありません。</p>
+                  <p className="text-muted-foreground">No references available.</p>
                 ) : (
                   <div className="space-y-4">
                     {references.map((reference) => (

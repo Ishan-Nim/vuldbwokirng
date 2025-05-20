@@ -4,6 +4,7 @@ import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import StatsCard from '@/components/admin/StatsCard';
 import AdminActionCard from '@/components/admin/AdminActionCard';
+import ProcessingLogs from '@/components/admin/ProcessingLogs';
 import JapaneseBlogGenerator from '@/components/admin/JapaneseBlogGenerator';
 import GenJapaneseBlogFunction from '@/components/admin/GenJapaneseBlogFunction';
 import { useQuery } from '@tanstack/react-query';
@@ -21,8 +22,27 @@ interface ScheduledTask {
   updated_at: string;
 }
 
+interface LogEntry {
+  timestamp: string;
+  message: string;
+  type: 'info' | 'success' | 'warning' | 'error';
+}
+
 const Admin = () => {
   const [activeTab, setActiveTab] = useState('stats');
+  const [statsLogs, setStatsLogs] = useState<LogEntry[]>([]);
+  const [actionLogs, setActionLogs] = useState<LogEntry[]>([]);
+  const [generatorLogs, setGeneratorLogs] = useState<LogEntry[]>([]);
+
+  const updateLogs = (tabName: string, newLogs: LogEntry[]) => {
+    if (tabName === 'stats') {
+      setStatsLogs(prev => [...newLogs, ...prev].slice(0, 50)); // Limit to 50 logs
+    } else if (tabName === 'actions') {
+      setActionLogs(prev => [...newLogs, ...prev].slice(0, 50));
+    } else if (tabName === 'generators') {
+      setGeneratorLogs(prev => [...newLogs, ...prev].slice(0, 50));
+    }
+  };
 
   const { data: vulnerabilityCount, isLoading: isLoadingVulnCount } = useQuery({
     queryKey: ['vulnerabilityCount'],
@@ -32,6 +52,11 @@ const Admin = () => {
         .select('*', { count: 'exact', head: true });
       
       if (error) throw error;
+      updateLogs('stats', [{
+        timestamp: new Date().toLocaleTimeString(),
+        message: `Loaded vulnerability count: ${count || 0}`,
+        type: 'info'
+      }]);
       return count || 0;
     },
   });
@@ -45,6 +70,11 @@ const Admin = () => {
         .not('severity', 'is', null);
       
       if (error) throw error;
+      updateLogs('stats', [{
+        timestamp: new Date().toLocaleTimeString(),
+        message: `Loaded enhanced data count: ${count || 0}`,
+        type: 'info'
+      }]);
       return count || 0;
     },
   });
@@ -59,6 +89,11 @@ const Admin = () => {
         .not('title', 'ilike', 'CVE-%');
       
       if (error) throw error;
+      updateLogs('stats', [{
+        timestamp: new Date().toLocaleTimeString(),
+        message: `Loaded blog count: ${count || 0}`,
+        type: 'info'
+      }]);
       return count || 0;
     },
   });
@@ -72,6 +107,11 @@ const Admin = () => {
         .select('*');
       
       if (error) throw error;
+      updateLogs('stats', [{
+        timestamp: new Date().toLocaleTimeString(),
+        message: `Loaded scheduled tasks: ${data?.length || 0}`,
+        type: 'info'
+      }]);
       return data || [];
     },
   });
@@ -189,45 +229,72 @@ const Admin = () => {
                 </div>
               )}
             </Card>
+            
+            {/* Processing Logs for Statistics tab */}
+            <ProcessingLogs 
+              title="Processing Logs" 
+              description="Statistics processing activities"
+              logs={statsLogs}
+            />
           </div>
         </TabsContent>
         
-        <TabsContent value="actions" className="space-y-4 grid gap-4 md:grid-cols-2">
-          <AdminActionCard 
-            title="Fetch CVE Data" 
-            description="Use RSS function to get the latest CVE data"
-            functionName="fetch-cve-data"
-            task="fetch-cve"
-            nextScheduled={fetchTask?.next_run}
-          />
+        <TabsContent value="actions" className="space-y-4">
+          <div className="grid gap-4 md:grid-cols-2">
+            <AdminActionCard 
+              title="Fetch CVE Data" 
+              description="Use RSS function to get the latest CVE data"
+              functionName="fetch-cve-data"
+              task="fetch-cve"
+              nextScheduled={fetchTask?.next_run}
+              onLogUpdate={(logs) => updateLogs('actions', logs)}
+            />
+            
+            <AdminActionCard 
+              title="Enhance CVE Data" 
+              description="Use AI to enhance the fetched CVE data"
+              functionName="enrich-cve-data"
+              task="null"
+              nextScheduled={enrichTask?.next_run}
+              onLogUpdate={(logs) => updateLogs('actions', logs)}
+            />
+            
+            <AdminActionCard 
+              title="Run Task" 
+              description="Execute scheduled tasks"
+              functionName="scheduled-tasks"
+              task="fetch-cve"
+              nextScheduled={fetchTask?.next_run}
+              onLogUpdate={(logs) => updateLogs('actions', logs)}
+            />
+            
+            <AdminActionCard 
+              title="Generate Blogs" 
+              description="Generate 20 unique blog articles"
+              functionName="scheduled-tasks"
+              task="generate-blogs"
+              nextScheduled={blogGenTask?.next_run}
+              onLogUpdate={(logs) => updateLogs('actions', logs)}
+            />
+          </div>
           
-          <AdminActionCard 
-            title="Enhance CVE Data" 
-            description="Use AI to enhance the fetched CVE data"
-            functionName="enrich-cve-data"
-            task="null"
-            nextScheduled={enrichTask?.next_run}
-          />
-          
-          <AdminActionCard 
-            title="Run Task" 
-            description="Execute scheduled tasks"
-            functionName="scheduled-tasks"
-            task="fetch-cve"
-            nextScheduled={fetchTask?.next_run}
-          />
-          
-          <AdminActionCard 
-            title="Generate Blogs" 
-            description="Generate 20 unique blog articles"
-            functionName="scheduled-tasks"
-            task="generate-blogs"
-            nextScheduled={blogGenTask?.next_run}
+          {/* Processing Logs for Actions tab */}
+          <ProcessingLogs 
+            title="Processing Logs" 
+            description="Action tasks processing activities"
+            logs={actionLogs}
           />
         </TabsContent>
         
         <TabsContent value="generators" className="space-y-4">
           <JapaneseBlogGenerator />
+          
+          {/* Processing Logs for Generators tab */}
+          <ProcessingLogs 
+            title="Processing Logs" 
+            description="Generator tasks processing activities"
+            logs={generatorLogs}
+          />
         </TabsContent>
       </Tabs>
     </div>
