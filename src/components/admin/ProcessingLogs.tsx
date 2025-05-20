@@ -152,6 +152,14 @@ const ProcessingLogs: React.FC<ProcessingLogsProps> = ({
             ))}
           </div>
         ) : null}
+        
+        {localBlogLinks.length > 0 && localLogs.length > 0 && (
+          <div className="mt-4 text-center text-xs text-muted-foreground">
+            <Badge variant="outline" className="bg-green-50 dark:bg-green-950/30 text-green-700 dark:text-green-300">
+              Japanese blog post successfully generated
+            </Badge>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
