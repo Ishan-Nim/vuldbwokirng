@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Database, Shield, Settings } from 'lucide-react';
+import { Database, Shield, Settings, BookOpen } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface MainLayoutProps {
@@ -14,6 +14,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
   
   const navLinks = [
     { name: 'Vulnerability Database', path: '/', icon: <Database className="h-5 w-5" /> },
+    { name: 'Security Blog', path: '/blog', icon: <BookOpen className="h-5 w-5" /> },
     { name: 'Admin Panel', path: '/admin', icon: <Settings className="h-5 w-5" /> },
   ];
 
@@ -33,7 +34,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
                   to={link.path}
                   className={cn(
                     "flex items-center space-x-1 px-2 py-1 rounded-md transition-colors",
-                    currentPath === link.path
+                    currentPath.startsWith(link.path)
                       ? "text-primary font-medium"
                       : "text-muted-foreground hover:text-foreground"
                   )}

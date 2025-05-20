@@ -1,174 +1,83 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import MainLayout from '@/components/layout/MainLayout';
-import AdminActionCard from '@/components/admin/AdminActionCard';
-import JapaneseBlogGenerator from '@/components/admin/JapaneseBlogGenerator';
-import StatsCard from '@/components/admin/StatsCard';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { AlertCircle, Database, BarChart3, RefreshCw, Cpu, ShieldAlert, FileText } from 'lucide-react';
-import { toast } from 'sonner';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { AdminActionCard } from '@/components/admin/AdminActionCard';
+import { StatsCard } from '@/components/admin/StatsCard';
+import GenJapaneseBlogFunction from '@/components/admin/GenJapaneseBlogFunction';
+import { BookOpenCheck, Database, Bot } from 'lucide-react';
 
 const Admin = () => {
-  const [isFetchingCVEs, setIsFetchingCVEs] = useState(false);
-  const [isEnrichingPosts, setIsEnrichingPosts] = useState(false);
-  const [logMessages, setLogMessages] = useState<string[]>([]);
-
-  const handleFetchCVEs = () => {
-    setIsFetchingCVEs(true);
-    setLogMessages(prev => [...prev, "Starting CVE fetch from RSS feed..."]);
-    
-    // Simulate API call
-    setTimeout(() => {
-      setLogMessages(prev => [...prev, "Connected to https://cvefeed.io/rssfeed/latest.xml"]);
-      
-      setTimeout(() => {
-        setLogMessages(prev => [...prev, "Downloading latest CVE entries..."]);
-        
-        setTimeout(() => {
-          setLogMessages(prev => [...prev, "Processing and storing 12 new CVE entries..."]);
-          
-          setTimeout(() => {
-            setLogMessages(prev => [...prev, "Successfully fetched and stored 12 new CVE entries"]);
-            setIsFetchingCVEs(false);
-            toast.success("Successfully fetched 12 new CVE entries");
-          }, 1000);
-        }, 1500);
-      }, 1000);
-    }, 1000);
-  };
-
-  const handleEnrichPosts = () => {
-    setIsEnrichingPosts(true);
-    setLogMessages(prev => [...prev, "Starting AI enrichment process for raw CVE posts..."]);
-    
-    // Simulate API call
-    setTimeout(() => {
-      setLogMessages(prev => [...prev, "Connecting to OpenAI API..."]);
-      
-      setTimeout(() => {
-        setLogMessages(prev => [...prev, "Processing 8 unenriched CVE posts..."]);
-        
-        setTimeout(() => {
-          setLogMessages(prev => [...prev, "Enriching CVE-2025-4866..."]);
-          
-          setTimeout(() => {
-            setLogMessages(prev => [...prev, "Enriching CVE-2025-4870..."]);
-            
-            setTimeout(() => {
-              setLogMessages(prev => [...prev, "Successfully enriched and stored 8 CVE entries with AI analysis"]);
-              setIsEnrichingPosts(false);
-              toast.success("Successfully enriched 8 CVE entries with AI");
-            }, 1500);
-          }, 1500);
-        }, 1500);
-      }, 1000);
-    }, 1000);
-  };
-
   return (
     <MainLayout>
       <div className="space-y-6">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Admin Panel</h1>
-          <p className="text-muted-foreground mt-1">
-            Manage your vulnerability database and AI-powered content generation
+          <h1 className="text-2xl font-bold tracking-tight">Admin Dashboard</h1>
+          <p className="text-muted-foreground">
+            Manage vulnerability data and AI-powered content generation
           </p>
         </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <StatsCard 
-            title="Total Vulnerabilities" 
-            value="761"
-            description="Last 30 days" 
-            trend={{ value: 12, isPositive: true }}
-            icon={<ShieldAlert />} 
+        
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <StatsCard
+            title="Total Vulnerabilities"
+            value="4,228"
+            description="CVE entries in database"
+            icon={<Database className="h-5 w-5" />}
           />
-          <StatsCard 
-            title="AI-Enriched Posts" 
-            value="723" 
-            description="95% of database"
-            icon={<Cpu />}
+          <StatsCard
+            title="AI Enhanced"
+            value="3,182"
+            description="Reports with AI analysis"
+            icon={<Bot className="h-5 w-5" />}
           />
-          <StatsCard 
-            title="Japanese Blog Posts" 
-            value="42"
-            description="Generated content" 
-            icon={<FileText />}
-          />
-          <StatsCard 
-            title="API Requests" 
-            value="1,204"
-            description="Last 30 days" 
-            trend={{ value: 8, isPositive: true }}
-            icon={<BarChart3 />}
+          <StatsCard
+            title="Japanese Blogs"
+            value="14"
+            description="AI-generated security blogs"
+            icon={<BookOpenCheck className="h-5 w-5" />}
           />
         </div>
 
-        <Tabs defaultValue="actions">
-          <TabsList className="grid w-full grid-cols-3 mb-4">
-            <TabsTrigger value="actions">Admin Actions</TabsTrigger>
-            <TabsTrigger value="japanese">Japanese Blog Generator</TabsTrigger>
-            <TabsTrigger value="logs">System Logs</TabsTrigger>
+        <Tabs defaultValue="vulndb">
+          <TabsList className="grid w-full grid-cols-2 mb-8">
+            <TabsTrigger value="vulndb">Vulnerability Database</TabsTrigger>
+            <TabsTrigger value="japblog">Japanese Blog Generator</TabsTrigger>
           </TabsList>
           
-          <TabsContent value="actions">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <AdminActionCard 
-                title="Fetch CVEs from RSS"
-                description="Download and store the latest CVEs from the RSS feed"
+          {/* Vulnerability Database Tab */}
+          <TabsContent value="vulndb">
+            <div className="grid gap-4 md:grid-cols-2">
+              <AdminActionCard
+                title="Fetch CVEs from RSS Feed"
+                description="Download the latest CVE entries from the official RSS feed"
                 buttonText="Fetch Latest CVEs"
                 icon={<Database className="h-5 w-5" />}
-                isLoading={isFetchingCVEs}
-                onClick={handleFetchCVEs}
+                onClick={() => alert('This feature is not yet implemented')}
               />
               
-              <AdminActionCard 
-                title="AI Enrich CVE Posts"
-                description="Process raw CVE posts with OpenAI to add enriched analysis"
-                buttonText="Enrich CVE Posts"
-                icon={<Cpu className="h-5 w-5" />}
-                isLoading={isEnrichingPosts}
-                onClick={handleEnrichPosts}
+              <AdminActionCard
+                title="AI Enrich CVE Data"
+                description="Process raw CVE data with OpenAI to add technical analysis and business impact"
+                buttonText="Start AI Enrichment"
+                icon={<Bot className="h-5 w-5" />}
+                onClick={() => alert('This feature is not yet implemented')}
               />
             </div>
           </TabsContent>
           
-          <TabsContent value="japanese">
-            <JapaneseBlogGenerator />
-          </TabsContent>
-          
-          <TabsContent value="logs">
+          {/* Japanese Blog Generator Tab */}
+          <TabsContent value="japblog">
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center">
-                  <RefreshCw className="h-5 w-5 mr-2" />
-                  System Activity Logs
-                </CardTitle>
+                <CardTitle>Japanese Security Blog Generator</CardTitle>
                 <CardDescription>
-                  Real-time logs of system operations and API interactions
+                  Generate comprehensive security blog posts in Japanese using AI
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                {logMessages.length > 0 ? (
-                  <div className="bg-muted/50 rounded-md p-4 h-64 overflow-y-auto font-mono text-sm">
-                    {logMessages.map((message, index) => (
-                      <div key={index} className="pb-1">
-                        <span className="text-muted-foreground">[{new Date().toISOString()}]</span>{" "}
-                        {message}
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <Alert>
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertTitle>No recent activity</AlertTitle>
-                    <AlertDescription>
-                      Perform actions to see logs appear here.
-                    </AlertDescription>
-                  </Alert>
-                )}
+                <GenJapaneseBlogFunction />
               </CardContent>
             </Card>
           </TabsContent>

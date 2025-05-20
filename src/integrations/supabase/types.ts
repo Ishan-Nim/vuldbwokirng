@@ -9,7 +9,153 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      references: {
+        Row: {
+          created_at: string
+          id: string
+          ref_title: string | null
+          ref_type: string | null
+          ref_url: string | null
+          vulnerability_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          ref_title?: string | null
+          ref_type?: string | null
+          ref_url?: string | null
+          vulnerability_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          ref_title?: string | null
+          ref_type?: string | null
+          ref_url?: string | null
+          vulnerability_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "references_vulnerability_id_fkey"
+            columns: ["vulnerability_id"]
+            isOneToOne: false
+            referencedRelation: "vulnerabilities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      remediations: {
+        Row: {
+          created_at: string
+          id: string
+          priority_level: string | null
+          recommendation: string | null
+          vulnerability_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          priority_level?: string | null
+          recommendation?: string | null
+          vulnerability_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          priority_level?: string | null
+          recommendation?: string | null
+          vulnerability_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "remediations_vulnerability_id_fkey"
+            columns: ["vulnerability_id"]
+            isOneToOne: false
+            referencedRelation: "vulnerabilities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      threat_modeling: {
+        Row: {
+          business_impact_detail: string | null
+          created_at: string
+          detectability: number | null
+          exploitability: number | null
+          id: string
+          prevalence: number | null
+          technical_impact_score: number | null
+          vulnerability_id: string | null
+        }
+        Insert: {
+          business_impact_detail?: string | null
+          created_at?: string
+          detectability?: number | null
+          exploitability?: number | null
+          id?: string
+          prevalence?: number | null
+          technical_impact_score?: number | null
+          vulnerability_id?: string | null
+        }
+        Update: {
+          business_impact_detail?: string | null
+          created_at?: string
+          detectability?: number | null
+          exploitability?: number | null
+          id?: string
+          prevalence?: number | null
+          technical_impact_score?: number | null
+          vulnerability_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "threat_modeling_vulnerability_id_fkey"
+            columns: ["vulnerability_id"]
+            isOneToOne: false
+            referencedRelation: "vulnerabilities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vulnerabilities: {
+        Row: {
+          business_impact: string | null
+          created_at: string
+          description: string | null
+          id: string
+          is_vulnerable: boolean | null
+          risk_rating: string | null
+          severity: string | null
+          technical_impact: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          business_impact?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_vulnerable?: boolean | null
+          risk_rating?: string | null
+          severity?: string | null
+          technical_impact?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          business_impact?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_vulnerable?: boolean | null
+          risk_rating?: string | null
+          severity?: string | null
+          technical_impact?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
