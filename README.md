@@ -48,3 +48,10 @@ npm i
 
 # Step 4: Start the development server with auto-reloading and an instant preview.
 npm run dev
+
+
+Feel free to reach out or follow for updates and insights:
+
+- 💼 [LinkedIn – Ishan Nim](https://www.linkedin.com/in/ishannim/)
+- 🔗 [https://www.linkedin.com/in/ishannim/](https://www.linkedin.com/in/ishannim/)
+- 🐦 [X (Twitter) – @D4rkelves](https://x.com/D4rkelves)
