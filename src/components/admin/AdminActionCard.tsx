@@ -8,13 +8,19 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
 
+export interface LogEntry {
+  timestamp: string;
+  message: string;
+  type: 'info' | 'success' | 'warning' | 'error';
+}
+
 interface AdminActionCardProps {
   title: string;
   description: string;
   functionName: string;
   task?: string;
   nextScheduled?: string | null;
-  onLogUpdate?: (logs: { timestamp: string; message: string; type: string }[]) => void;
+  onLogUpdate?: (logs: LogEntry[]) => void;
   onSuccess?: (count?: number) => void;
   highlightAction?: boolean;
 }
@@ -78,7 +84,7 @@ const AdminActionCard = ({
         description: data?.message || `${title}が正常に処理されました`,
         variant: "default",
       });
-    } catch (err) {
+    } catch (err: any) {
       console.error(`Error executing ${functionName}:`, err);
       
       if (onLogUpdate) {

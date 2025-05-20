@@ -5,13 +5,10 @@ import { Button } from '@/components/ui/button';
 import { Loader2, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from "@/integrations/supabase/client";
+import { LogEntry } from '../admin/AdminActionCard';
 
 interface SitemapUpdateCardProps {
-  onLogUpdate: (logs: Array<{
-    timestamp: string;
-    message: string;
-    type: 'info' | 'success' | 'warning' | 'error';
-  }>) => void;
+  onLogUpdate: (logs: Array<LogEntry>) => void;
 }
 
 const SitemapUpdateCard: React.FC<SitemapUpdateCardProps> = ({ onLogUpdate }) => {
