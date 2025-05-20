@@ -529,35 +529,33 @@ const Purpose = () => {
   const handleServiceConfigChange = (config: WebServiceConfig | CloudServiceConfig | NetworkServiceConfig | MobileServiceConfig) => {
     if (!activeServiceForm) return;
     
-    // Create a type guard to determine which type of config we're dealing with
-    const updateConfig = () => {
-      switch (activeServiceForm) {
-        case 'web':
-          return {
-            ...serviceConfig,
-            web: { ...config as WebServiceConfig, price: serviceConfig.web?.price || 150 }
-          };
-        case 'cloud':
-          return {
-            ...serviceConfig,
-            cloud: { ...config as CloudServiceConfig, price: serviceConfig.cloud?.price || 300 }
-          };
-        case 'network':
-          return {
-            ...serviceConfig,
-            network: { ...config as NetworkServiceConfig, price: serviceConfig.network?.price || 250 }
-          };
-        case 'mobile':
-          return {
-            ...serviceConfig,
-            mobile: { ...config as MobileServiceConfig, price: serviceConfig.mobile?.price || 200 }
-          };
-        default:
-          return serviceConfig;
-      }
-    };
-    
-    setServiceConfig(updateConfig());
+    // Use a type guard approach to safely update the specific service config
+    switch (activeServiceForm) {
+      case 'web':
+        setServiceConfig(prev => ({
+          ...prev,
+          web: { ...(config as WebServiceConfig), price: prev.web?.price || 150 }
+        }));
+        break;
+      case 'cloud':
+        setServiceConfig(prev => ({
+          ...prev,
+          cloud: { ...(config as CloudServiceConfig), price: prev.cloud?.price || 300 }
+        }));
+        break;
+      case 'network':
+        setServiceConfig(prev => ({
+          ...prev,
+          network: { ...(config as NetworkServiceConfig), price: prev.network?.price || 250 }
+        }));
+        break;
+      case 'mobile':
+        setServiceConfig(prev => ({
+          ...prev,
+          mobile: { ...(config as MobileServiceConfig), price: prev.mobile?.price || 200 }
+        }));
+        break;
+    }
   };
   
   const handleServiceDetailView = (serviceType: ServiceType) => {
