@@ -1,8 +1,7 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Clock, RefreshCw, Counter } from 'lucide-react';
+import { Clock, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export interface LogEntry {
