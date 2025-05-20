@@ -2,10 +2,10 @@
 import React, { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { StatsCard } from '@/components/admin/StatsCard';
-import { AdminActionCard } from '@/components/admin/AdminActionCard';
-import { JapaneseBlogGenerator } from '@/components/admin/JapaneseBlogGenerator';
-import { GenJapaneseBlogFunction } from '@/components/admin/GenJapaneseBlogFunction';
+import StatsCard from '@/components/admin/StatsCard';
+import AdminActionCard from '@/components/admin/AdminActionCard';
+import JapaneseBlogGenerator from '@/components/admin/JapaneseBlogGenerator';
+import GenJapaneseBlogFunction from '@/components/admin/GenJapaneseBlogFunction';
 import { useQuery } from '@tanstack/react-query';
 import { format, parseISO } from 'date-fns';
 import { Clock, RefreshCw, FileText, ArrowDownUp } from 'lucide-react';
