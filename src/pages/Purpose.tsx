@@ -5,12 +5,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Loader2, Check, AlertCircle } from 'lucide-react';
+import { Loader2, Check, AlertCircle, Calculator, Database, Network, Smartphone } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
 
 type CompanyProfile = {
   name: string;
@@ -28,14 +29,60 @@ type CompanyProfile = {
   isJapaneseListed?: boolean;
 };
 
+type ServiceType = 'web' | 'cloud' | 'network' | 'mobile';
+
+type ServiceConfig = {
+  web?: {
+    type: string;
+    pages?: number;
+    loginComplexity?: string;
+    technologies?: string[];
+    price: number;
+  };
+  cloud?: {
+    type: string;
+    accounts?: number;
+    providers?: string[];
+    scope?: string[];
+    price: number;
+  };
+  network?: {
+    type: string;
+    internal?: boolean;
+    ipCount?: number;
+    vpn?: boolean;
+    price: number;
+  };
+  mobile?: {
+    type: string;
+    count?: number;
+    platforms?: string[];
+    codeAccess?: boolean;
+    price: number;
+  };
+};
+
+const companySchema = z.object({
+  companyName: z.string().min(2, { message: "Company name is required" }),
+});
+
 const Purpose = () => {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('company');
   const [isLoading, setIsLoading] = useState(false);
   const [companyProfile, setCompanyProfile] = useState<CompanyProfile | null>(null);
+  const [selectedServices, setSelectedServices] = useState<Record<ServiceType, boolean>>({
+    web: false,
+    cloud: false,
+    network: false,
+    mobile: false
+  });
+  const [serviceConfig, setServiceConfig] = useState<ServiceConfig>({});
+  const [quoteGenerated, setQuoteGenerated] = useState(false);
   
   // Company Intelligence Form
   const companyForm = useForm({
+    resolver: zodResolver(companySchema),
     defaultValues: {
       companyName: '',
     },
@@ -49,20 +96,26 @@ const Purpose = () => {
       // In a real app, this would call a Supabase Edge Function to use ChatGPT API
       // For demo purposes, we'll simulate the response with a timeout
       setTimeout(() => {
+        const isJapaneseListed = data.companyName.toLowerCase().includes('sony') || 
+                                data.companyName.toLowerCase().includes('toyota') ||
+                                data.companyName.toLowerCase().includes('nintendo');
+        
         const mockProfile: CompanyProfile = {
           name: data.companyName,
           website: data.companyName.toLowerCase().replace(/\s+/g, '') + '.com',
-          headOffice: data.companyName.includes('Sony') ? 'Tokyo, Japan' : 'Unknown',
-          employeeCount: data.companyName.includes('Sony') ? 114000 : Math.floor(Math.random() * 10000),
-          mainBusiness: data.companyName.includes('Sony') ? ['Electronics', 'Entertainment', 'Financial Services'] : ['Technology'],
-          established: data.companyName.includes('Sony') ? '1946' : '2000',
-          capital: data.companyName.includes('Sony') ? '¥880.24 billion' : 'Unknown',
-          revenue: data.companyName.includes('Sony') ? '¥11.54 trillion' : 'Unknown',
+          headOffice: isJapaneseListed ? 'Tokyo, Japan' : 'Unknown',
+          employeeCount: isJapaneseListed ? Math.floor(Math.random() * 100000) + 10000 : Math.floor(Math.random() * 10000),
+          mainBusiness: isJapaneseListed 
+            ? ['Electronics', 'Entertainment', 'Financial Services'] 
+            : ['Technology'],
+          established: isJapaneseListed ? '1946' : Math.floor(Math.random() * 30 + 1980).toString(),
+          capital: isJapaneseListed ? '¥880.24 billion' : 'Unknown',
+          revenue: isJapaneseListed ? '¥11.54 trillion' : 'Unknown',
           dataBreaches: [],
-          isListed: data.companyName.includes('Sony'),
-          stockPrice: data.companyName.includes('Sony') ? '¥14,000' : 'N/A',
-          country: data.companyName.includes('Sony') ? 'Japan' : 'Unknown',
-          isJapaneseListed: data.companyName.includes('Sony'),
+          isListed: isJapaneseListed,
+          stockPrice: isJapaneseListed ? '¥14,000' : 'N/A',
+          country: isJapaneseListed ? 'Japan' : 'Unknown',
+          isJapaneseListed: isJapaneseListed,
         };
         
         setCompanyProfile(mockProfile);
@@ -74,7 +127,7 @@ const Purpose = () => {
         // Move to services tab after profile is generated
         setActiveTab('services');
         setIsLoading(false);
-      }, 2000);
+      }, 1500);
       
     } catch (error) {
       console.error('Error generating company profile:', error);
@@ -87,8 +140,89 @@ const Purpose = () => {
     }
   };
   
+  const toggleService = (service: ServiceType) => {
+    setSelectedServices(prev => ({
+      ...prev,
+      [service]: !prev[service]
+    }));
+
+    // Initialize service config with default prices based on service type
+    if (!serviceConfig[service]) {
+      const defaultConfig: any = {};
+      
+      switch (service) {
+        case 'web':
+          defaultConfig.type = 'Corporate Website';
+          defaultConfig.price = 150;
+          break;
+        case 'cloud':
+          defaultConfig.type = 'Mid-Level Infra';
+          defaultConfig.price = 300;
+          break;
+        case 'network':
+          defaultConfig.type = 'Secure External Network';
+          defaultConfig.price = 250;
+          break;
+        case 'mobile':
+          defaultConfig.type = 'Mid-Level App';
+          defaultConfig.price = 200;
+          break;
+      }
+      
+      setServiceConfig(prev => ({
+        ...prev,
+        [service]: defaultConfig
+      }));
+    }
+  };
+  
   const moveToQuotation = () => {
+    setQuoteGenerated(true);
     setActiveTab('quote');
+  };
+  
+  const calculateTotal = () => {
+    let total = 0;
+    
+    Object.entries(serviceConfig).forEach(([service, config]) => {
+      if (selectedServices[service as ServiceType]) {
+        total += config.price || 0;
+      }
+    });
+    
+    // Apply Japanese listed company premium if applicable
+    if (companyProfile?.isJapaneseListed) {
+      total = Math.round(total * 1.12); // 12% increase
+    }
+    
+    return total;
+  };
+  
+  // Get the services that are actually selected
+  const getSelectedServiceConfigs = () => {
+    const selectedConfigs: ServiceConfig = {};
+    
+    Object.entries(serviceConfig).forEach(([service, config]) => {
+      if (selectedServices[service as ServiceType]) {
+        selectedConfigs[service as keyof ServiceConfig] = config;
+      }
+    });
+    
+    return selectedConfigs;
+  };
+  
+  const downloadPdf = () => {
+    toast({
+      title: "PDF Download Started",
+      description: "Your quote summary PDF is being generated and will download shortly.",
+    });
+  };
+  
+  const saveQuote = () => {
+    toast({
+      title: "Quote Saved",
+      description: "Your quote has been saved to your account.",
+    });
   };
   
   return (
@@ -103,7 +237,7 @@ const Purpose = () => {
           <TabsList className="grid grid-cols-3 mb-8">
             <TabsTrigger value="company">Company Intelligence</TabsTrigger>
             <TabsTrigger value="services" disabled={!companyProfile}>Service Configuration</TabsTrigger>
-            <TabsTrigger value="quote" disabled={!companyProfile}>Quotation</TabsTrigger>
+            <TabsTrigger value="quote" disabled={!companyProfile || !quoteGenerated}>Quotation</TabsTrigger>
           </TabsList>
           
           <TabsContent value="company" className="space-y-4">
@@ -125,7 +259,7 @@ const Purpose = () => {
                             <Input placeholder="e.g., Sony Corporation" {...field} />
                           </FormControl>
                           <FormDescription>
-                            Enter the full company name to analyze
+                            Enter the full company name to analyze (Try "Sony" or "Nintendo" for Japanese listed examples)
                           </FormDescription>
                           <FormMessage />
                         </FormItem>
@@ -211,49 +345,76 @@ const Purpose = () => {
                   <h3 className="text-lg font-medium">Available Services</h3>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <Card className="shadow-sm border-2 border-primary/50 cursor-pointer hover:border-primary transition-colors">
+                    <Card 
+                      className={`shadow-sm border-2 ${selectedServices.web ? 'border-primary' : 'border-primary/50'} cursor-pointer hover:border-primary transition-colors`}
+                      onClick={() => toggleService('web')}
+                    >
                       <CardHeader className="pb-2">
-                        <CardTitle className="text-lg">Web Security Testing</CardTitle>
+                        <CardTitle className="text-lg flex items-center">
+                          <Calculator className="h-5 w-5 mr-2" />
+                          Web Security Testing
+                        </CardTitle>
                       </CardHeader>
                       <CardContent>
                         <p className="text-sm text-muted-foreground">Assessment of web applications for vulnerabilities</p>
-                        <Check className="h-5 w-5 text-green-500 mt-2" />
+                        {selectedServices.web && <Check className="h-5 w-5 text-green-500 mt-2" />}
                       </CardContent>
                     </Card>
                     
-                    <Card className="shadow-sm border-2 border-primary/50 cursor-pointer hover:border-primary transition-colors">
+                    <Card 
+                      className={`shadow-sm border-2 ${selectedServices.cloud ? 'border-primary' : 'border-primary/50'} cursor-pointer hover:border-primary transition-colors`}
+                      onClick={() => toggleService('cloud')}
+                    >
                       <CardHeader className="pb-2">
-                        <CardTitle className="text-lg">Cloud Assessment</CardTitle>
+                        <CardTitle className="text-lg flex items-center">
+                          <Database className="h-5 w-5 mr-2" />
+                          Cloud Assessment
+                        </CardTitle>
                       </CardHeader>
                       <CardContent>
                         <p className="text-sm text-muted-foreground">Review cloud infrastructure and security controls</p>
-                        <Check className="h-5 w-5 text-green-500 mt-2" />
+                        {selectedServices.cloud && <Check className="h-5 w-5 text-green-500 mt-2" />}
                       </CardContent>
                     </Card>
                     
-                    <Card className="shadow-sm border-2 border-primary/50 cursor-pointer hover:border-primary transition-colors">
+                    <Card 
+                      className={`shadow-sm border-2 ${selectedServices.network ? 'border-primary' : 'border-primary/50'} cursor-pointer hover:border-primary transition-colors`}
+                      onClick={() => toggleService('network')}
+                    >
                       <CardHeader className="pb-2">
-                        <CardTitle className="text-lg">Network Pentest</CardTitle>
+                        <CardTitle className="text-lg flex items-center">
+                          <Network className="h-5 w-5 mr-2" />
+                          Network Pentest
+                        </CardTitle>
                       </CardHeader>
                       <CardContent>
                         <p className="text-sm text-muted-foreground">Comprehensive network security assessment</p>
-                        <Check className="h-5 w-5 text-green-500 mt-2" />
+                        {selectedServices.network && <Check className="h-5 w-5 text-green-500 mt-2" />}
                       </CardContent>
                     </Card>
                     
-                    <Card className="shadow-sm border-2 border-primary/50 cursor-pointer hover:border-primary transition-colors">
+                    <Card 
+                      className={`shadow-sm border-2 ${selectedServices.mobile ? 'border-primary' : 'border-primary/50'} cursor-pointer hover:border-primary transition-colors`}
+                      onClick={() => toggleService('mobile')}
+                    >
                       <CardHeader className="pb-2">
-                        <CardTitle className="text-lg">Mobile App Testing</CardTitle>
+                        <CardTitle className="text-lg flex items-center">
+                          <Smartphone className="h-5 w-5 mr-2" />
+                          Mobile App Testing
+                        </CardTitle>
                       </CardHeader>
                       <CardContent>
                         <p className="text-sm text-muted-foreground">Security assessment for mobile applications</p>
-                        <Check className="h-5 w-5 text-green-500 mt-2" />
+                        {selectedServices.mobile && <Check className="h-5 w-5 text-green-500 mt-2" />}
                       </CardContent>
                     </Card>
                   </div>
                   
                   <div className="flex justify-end">
-                    <Button onClick={moveToQuotation}>
+                    <Button 
+                      onClick={moveToQuotation}
+                      disabled={!Object.values(selectedServices).some(v => v)}
+                    >
                       Calculate Quote
                     </Button>
                   </div>
@@ -283,37 +444,67 @@ const Purpose = () => {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-200">
-                        <tr>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">Web Security Testing</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm">Corporate Website</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-right">150</td>
-                        </tr>
-                        <tr>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">Cloud Assessment</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm">Mid-Level Infra</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-right">300</td>
-                        </tr>
-                        <tr>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">Network Pentest</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm">Secure External Network</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-right">250</td>
-                        </tr>
+                        {selectedServices.web && serviceConfig.web && (
+                          <tr>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">Web Security Testing</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm">{serviceConfig.web.type}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-right">{serviceConfig.web.price}</td>
+                          </tr>
+                        )}
+                        
+                        {selectedServices.cloud && serviceConfig.cloud && (
+                          <tr>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">Cloud Assessment</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm">{serviceConfig.cloud.type}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-right">{serviceConfig.cloud.price}</td>
+                          </tr>
+                        )}
+                        
+                        {selectedServices.network && serviceConfig.network && (
+                          <tr>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">Network Pentest</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm">{serviceConfig.network.type}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-right">{serviceConfig.network.price}</td>
+                          </tr>
+                        )}
+                        
+                        {selectedServices.mobile && serviceConfig.mobile && (
+                          <tr>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">Mobile App Testing</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm">{serviceConfig.mobile.type}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-right">{serviceConfig.mobile.price}</td>
+                          </tr>
+                        )}
                       </tbody>
                       <tfoot>
                         <tr className="border-t-2 border-gray-300">
                           <th className="px-6 py-4 text-left text-sm font-semibold" colSpan={2}>Subtotal</th>
-                          <th className="px-6 py-4 text-right text-sm font-semibold">700</th>
+                          <th className="px-6 py-4 text-right text-sm font-semibold">
+                            {Object.entries(serviceConfig).reduce((acc, [service, config]) => {
+                              if (selectedServices[service as ServiceType]) {
+                                return acc + (config.price || 0);
+                              }
+                              return acc;
+                            }, 0)}
+                          </th>
                         </tr>
                         {companyProfile?.isJapaneseListed && (
                           <tr>
                             <th className="px-6 py-4 text-left text-sm font-semibold" colSpan={2}>Japanese Listed Company Premium (+12%)</th>
-                            <th className="px-6 py-4 text-right text-sm font-semibold">+84</th>
+                            <th className="px-6 py-4 text-right text-sm font-semibold">
+                              +{Math.round(Object.entries(serviceConfig).reduce((acc, [service, config]) => {
+                                if (selectedServices[service as ServiceType]) {
+                                  return acc + (config.price || 0);
+                                }
+                                return acc;
+                              }, 0) * 0.12)}
+                            </th>
                           </tr>
                         )}
                         <tr className="bg-primary/5">
                           <th className="px-6 py-4 text-left text-base font-bold" colSpan={2}>Total Estimate</th>
                           <th className="px-6 py-4 text-right text-base font-bold">
-                            {companyProfile?.isJapaneseListed ? '784' : '700'} 万円
+                            {calculateTotal()} 万円
                           </th>
                         </tr>
                       </tfoot>
@@ -321,10 +512,10 @@ const Purpose = () => {
                   </div>
                   
                   <div className="flex flex-wrap justify-end gap-4 mt-6">
-                    <Button variant="outline">
+                    <Button variant="outline" onClick={saveQuote}>
                       Save Quote
                     </Button>
-                    <Button>
+                    <Button onClick={downloadPdf}>
                       Download PDF
                     </Button>
                   </div>
