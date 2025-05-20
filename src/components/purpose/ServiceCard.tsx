@@ -27,28 +27,43 @@ const ServiceCard = ({ type, isSelected, onClick }: ServiceCardProps) => {
   const getTitle = () => {
     switch (type) {
       case 'web':
-        return 'Web Security Testing';
+        return { jp: 'ウェブセキュリティテスト', en: 'Web Security Testing' };
       case 'cloud':
-        return 'Cloud Assessment';
+        return { jp: 'クラウド評価', en: 'Cloud Assessment' };
       case 'network':
-        return 'Network Pentest';
+        return { jp: 'ネットワークペンテスト', en: 'Network Pentest' };
       case 'mobile':
-        return 'Mobile App Testing';
+        return { jp: 'モバイルアプリテスト', en: 'Mobile App Testing' };
     }
   };
 
   const getDescription = () => {
     switch (type) {
       case 'web':
-        return 'Assessment of web applications for vulnerabilities';
+        return { 
+          jp: 'ウェブアプリケーションの脆弱性評価', 
+          en: 'Assessment of web applications for vulnerabilities' 
+        };
       case 'cloud':
-        return 'Review cloud infrastructure and security controls';
+        return { 
+          jp: 'クラウドインフラとセキュリティ管理の評価', 
+          en: 'Review cloud infrastructure and security controls' 
+        };
       case 'network':
-        return 'Comprehensive network security assessment';
+        return { 
+          jp: '包括的なネットワークセキュリティ評価', 
+          en: 'Comprehensive network security assessment' 
+        };
       case 'mobile':
-        return 'Security assessment for mobile applications';
+        return { 
+          jp: 'モバイルアプリケーションのセキュリティ評価', 
+          en: 'Security assessment for mobile applications' 
+        };
     }
   };
+
+  const title = getTitle();
+  const description = getDescription();
 
   return (
     <Card 
@@ -58,11 +73,15 @@ const ServiceCard = ({ type, isSelected, onClick }: ServiceCardProps) => {
       <CardHeader className="pb-2">
         <CardTitle className="text-lg flex items-center">
           {getIcon()}
-          {getTitle()}
+          <div>
+            <span>{title.jp}</span>
+            <span className="block text-xs text-muted-foreground">{title.en}</span>
+          </div>
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <p className="text-sm text-muted-foreground">{getDescription()}</p>
+        <p className="text-sm">{description.jp}</p>
+        <p className="text-xs text-muted-foreground">{description.en}</p>
         {isSelected && <Check className="h-5 w-5 text-green-500 mt-2" />}
       </CardContent>
     </Card>

@@ -1,5 +1,15 @@
-
 export type ServiceType = 'web' | 'cloud' | 'network' | 'mobile';
+
+export interface ServiceTypeLabels {
+  title: {
+    en: string;
+    jp: string;
+  };
+  description: {
+    en: string;
+    jp: string;
+  };
+}
 
 export type CompanyProfile = {
   name: string;
