@@ -1,8 +1,8 @@
 
-import { WebServiceForm } from './WebServiceForm';
-import { CloudServiceForm } from './CloudServiceForm';
-import { NetworkServiceForm } from './NetworkServiceForm';
-import { MobileServiceForm } from './MobileServiceForm';
+import WebServiceForm from './WebServiceForm';
+import CloudServiceForm from './CloudServiceForm';
+import NetworkServiceForm from './NetworkServiceForm';
+import MobileServiceForm from './MobileServiceForm';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ServiceType } from '@/types/purpose';
 
