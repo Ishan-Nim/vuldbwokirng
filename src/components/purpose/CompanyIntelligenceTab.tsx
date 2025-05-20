@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { AlertCircle, Loader2 } from 'lucide-react';
+import { AlertCircle, Loader2, Edit } from 'lucide-react';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -27,6 +27,7 @@ const CompanyIntelligenceTab = ({ companyProfile, setCompanyProfile, moveToNextT
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
 
   const companyForm = useForm({
     resolver: zodResolver(companySchema),
@@ -128,6 +129,19 @@ const CompanyIntelligenceTab = ({ companyProfile, setCompanyProfile, moveToNextT
     setCompanyProfile(mockProfile);
     moveToNextTab();
   };
+  
+  const handleEditProfile = () => {
+    setIsEditing(true);
+  };
+  
+  const handleSaveProfile = () => {
+    setIsEditing(false);
+    // Save updated profile and show confirmation
+    toast({
+      title: "Profile Updated",
+      description: "Company profile has been successfully updated."
+    });
+  };
 
   return (
     <div className="space-y-4">
@@ -179,53 +193,160 @@ const CompanyIntelligenceTab = ({ companyProfile, setCompanyProfile, moveToNextT
       
       {companyProfile && (
         <Card>
-          <CardHeader>
-            <CardTitle>Company Profile: {companyProfile.name}</CardTitle>
-            <CardDescription>AI-generated company intelligence</CardDescription>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <div>
+              <CardTitle>Company Profile: {companyProfile.name}</CardTitle>
+              <CardDescription>AI-generated company intelligence</CardDescription>
+            </div>
+            <Button variant="outline" size="sm" onClick={handleEditProfile} className="flex items-center gap-1">
+              <Edit className="h-4 w-4" />
+              Edit Profile
+            </Button>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <div>
-                  <span className="font-medium">Website:</span> {companyProfile.website}
-                </div>
-                <div>
-                  <span className="font-medium">Head Office:</span> {companyProfile.headOffice}
-                </div>
-                <div>
-                  <span className="font-medium">Employees:</span> {companyProfile.employeeCount?.toLocaleString()}
-                </div>
-                <div>
-                  <span className="font-medium">Main Business:</span> {companyProfile.mainBusiness?.join(', ')}
-                </div>
-                <div>
-                  <span className="font-medium">Established:</span> {companyProfile.established}
-                </div>
-              </div>
-              <div className="space-y-2">
-                <div>
-                  <span className="font-medium">Capital:</span> {companyProfile.capital}
-                </div>
-                <div>
-                  <span className="font-medium">Revenue:</span> {companyProfile.revenue}
-                </div>
-                <div>
-                  <span className="font-medium">Country:</span> {companyProfile.country}
-                </div>
-                <div>
-                  <span className="font-medium">Publicly Listed:</span> {companyProfile.isListed ? 'Yes' : 'No'}
-                </div>
-                <div>
-                  <span className="font-medium">Stock Price:</span> {companyProfile.stockPrice}
-                </div>
-                {companyProfile.isJapaneseListed && (
-                  <div className="mt-4 p-2 bg-yellow-50 border border-yellow-200 rounded-md flex items-center gap-2">
-                    <AlertCircle className="h-4 w-4 text-yellow-500" />
-                    <span className="text-sm text-yellow-700">Japanese Listed Company: +12% premium pricing</span>
+            {isEditing ? (
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-3">
+                    <div className="space-y-1">
+                      <label className="text-sm font-medium">Website</label>
+                      <Input 
+                        defaultValue={companyProfile.website}
+                        onChange={(e) => setCompanyProfile({
+                          ...companyProfile, 
+                          website: e.target.value
+                        })}
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-sm font-medium">Head Office</label>
+                      <Input 
+                        defaultValue={companyProfile.headOffice}
+                        onChange={(e) => setCompanyProfile({
+                          ...companyProfile, 
+                          headOffice: e.target.value
+                        })}
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-sm font-medium">Employees</label>
+                      <Input 
+                        type="number"
+                        defaultValue={companyProfile.employeeCount}
+                        onChange={(e) => setCompanyProfile({
+                          ...companyProfile, 
+                          employeeCount: parseInt(e.target.value)
+                        })}
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-sm font-medium">Main Business</label>
+                      <Input 
+                        defaultValue={companyProfile.mainBusiness?.join(', ')}
+                        onChange={(e) => setCompanyProfile({
+                          ...companyProfile, 
+                          mainBusiness: e.target.value.split(',').map(item => item.trim())
+                        })}
+                      />
+                    </div>
                   </div>
-                )}
+                  <div className="space-y-3">
+                    <div className="space-y-1">
+                      <label className="text-sm font-medium">Established</label>
+                      <Input 
+                        defaultValue={companyProfile.established}
+                        onChange={(e) => setCompanyProfile({
+                          ...companyProfile, 
+                          established: e.target.value
+                        })}
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-sm font-medium">Capital</label>
+                      <Input 
+                        defaultValue={companyProfile.capital}
+                        onChange={(e) => setCompanyProfile({
+                          ...companyProfile, 
+                          capital: e.target.value
+                        })}
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-sm font-medium">Revenue</label>
+                      <Input 
+                        defaultValue={companyProfile.revenue}
+                        onChange={(e) => setCompanyProfile({
+                          ...companyProfile, 
+                          revenue: e.target.value
+                        })}
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-sm font-medium">Country</label>
+                      <Input 
+                        defaultValue={companyProfile.country}
+                        onChange={(e) => setCompanyProfile({
+                          ...companyProfile, 
+                          country: e.target.value
+                        })}
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div className="flex justify-end">
+                  <Button onClick={handleSaveProfile}>Save Changes</Button>
+                </div>
               </div>
-            </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <div>
+                    <span className="font-medium">Website:</span> {companyProfile.website}
+                  </div>
+                  <div>
+                    <span className="font-medium">Head Office:</span> {companyProfile.headOffice}
+                  </div>
+                  <div>
+                    <span className="font-medium">Employees:</span> {companyProfile.employeeCount?.toLocaleString()}
+                  </div>
+                  <div>
+                    <span className="font-medium">Main Business:</span> {companyProfile.mainBusiness?.join(', ')}
+                  </div>
+                  <div>
+                    <span className="font-medium">Established:</span> {companyProfile.established}
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <div>
+                    <span className="font-medium">Capital:</span> {companyProfile.capital}
+                  </div>
+                  <div>
+                    <span className="font-medium">Revenue:</span> {companyProfile.revenue}
+                  </div>
+                  <div>
+                    <span className="font-medium">Country:</span> {companyProfile.country}
+                  </div>
+                  <div>
+                    <span className="font-medium">Publicly Listed:</span> {companyProfile.isListed ? 'Yes' : 'No'}
+                  </div>
+                  <div>
+                    <span className="font-medium">Stock Price:</span> {companyProfile.stockPrice}
+                  </div>
+                  {companyProfile.isJapaneseListed && (
+                    <div className="mt-4 p-2 bg-yellow-50 border border-yellow-200 rounded-md flex items-center gap-2">
+                      <AlertCircle className="h-4 w-4 text-yellow-500" />
+                      <span className="text-sm text-yellow-700">Japanese Listed Company: +12% premium pricing</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+            
+            {!isEditing && companyProfile && (
+              <div className="mt-5 flex justify-end">
+                <Button onClick={moveToNextTab}>Next: Configure Services</Button>
+              </div>
+            )}
           </CardContent>
         </Card>
       )}
