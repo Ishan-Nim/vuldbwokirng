@@ -1,4 +1,3 @@
-
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.43.1";
@@ -139,35 +138,73 @@ serve(async (req) => {
       );
     }
     else if (task === "clear-database") {
+      console.log("Starting complete database purge...");
+      
       // Clear all tables in the correct order to respect foreign key constraints
       // Delete from references table
-      await supabase
+      const { error: referencesError } = await supabase
         .from('references')
         .delete()
         .neq('id', '00000000-0000-0000-0000-000000000000');
       
+      if (referencesError) {
+        console.error("Error clearing references table:", referencesError);
+        throw referencesError;
+      }
+      console.log("References table cleared successfully");
+      
       // Delete from remediations table
-      await supabase
+      const { error: remediationsError } = await supabase
         .from('remediations')
         .delete()
         .neq('id', '00000000-0000-0000-0000-000000000000');
       
+      if (remediationsError) {
+        console.error("Error clearing remediations table:", remediationsError);
+        throw remediationsError;
+      }
+      console.log("Remediations table cleared successfully");
+      
       // Delete from threat_modeling table
-      await supabase
+      const { error: threatModelingError } = await supabase
         .from('threat_modeling')
         .delete()
         .neq('id', '00000000-0000-0000-0000-000000000000');
       
+      if (threatModelingError) {
+        console.error("Error clearing threat_modeling table:", threatModelingError);
+        throw threatModelingError;
+      }
+      console.log("Threat modeling table cleared successfully");
+      
       // Delete from vulnerabilities table
-      await supabase
+      const { error: vulnerabilitiesError } = await supabase
         .from('vulnerabilities')
         .delete()
         .neq('id', '00000000-0000-0000-0000-000000000000');
       
+      if (vulnerabilitiesError) {
+        console.error("Error clearing vulnerabilities table:", vulnerabilitiesError);
+        throw vulnerabilitiesError;
+      }
+      console.log("Vulnerabilities table cleared successfully");
+      
+      // Delete from scheduled_tasks table
+      const { error: tasksError } = await supabase
+        .from('scheduled_tasks')
+        .delete()
+        .neq('id', '00000000-0000-0000-0000-000000000000');
+      
+      if (tasksError) {
+        console.error("Error clearing scheduled_tasks table:", tasksError);
+        throw tasksError;
+      }
+      console.log("Scheduled tasks table cleared successfully");
+      
       return new Response(
         JSON.stringify({ 
           success: true, 
-          message: "Database cleared successfully"
+          message: "All database tables have been completely cleared. Database is now empty and ready for customer use."
         }),
         { 
           headers: { ...corsHeaders, "Content-Type": "application/json" } 
