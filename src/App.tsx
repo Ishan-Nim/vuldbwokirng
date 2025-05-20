@@ -9,6 +9,7 @@ import Admin from "./pages/Admin";
 import BlogList from "./pages/BlogList";
 import Blog from "./pages/Blog";
 import NotFound from "./pages/NotFound";
+import ClearDatabaseButton from "./components/ClearDatabaseButton";
 
 const queryClient = new QueryClient();
 
@@ -17,6 +18,9 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
+      <div className="fixed bottom-4 right-4 z-50">
+        <ClearDatabaseButton />
+      </div>
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
