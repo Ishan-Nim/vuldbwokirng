@@ -15,7 +15,7 @@ serve(async (req) => {
   }
 
   try {
-    const baseUrl = req.headers.get('origin') || 'https://vulnvault.lovable.ai';
+    const baseUrl = req.headers.get('origin') || 'https://ehow-vulnerability.com';
     
     // Get Supabase credentials from environment variables
     const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
