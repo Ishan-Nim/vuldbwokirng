@@ -332,7 +332,7 @@ const Purpose = () => {
       
       // Initialize service config with default prices based on service type
       if (!serviceConfig[service]) {
-        let defaultConfig: Partial<WebServiceConfig | CloudServiceConfig | NetworkServiceConfig | MobileServiceConfig> = {};
+        let defaultConfig: WebServiceConfig | CloudServiceConfig | NetworkServiceConfig | MobileServiceConfig;
         
         switch (service) {
           case 'web':
@@ -359,6 +359,8 @@ const Purpose = () => {
               price: 200,
             } as MobileServiceConfig;
             break;
+          default:
+            return;
         }
         
         setServiceConfig(prev => ({
