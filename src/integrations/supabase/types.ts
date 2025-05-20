@@ -76,6 +76,33 @@ export type Database = {
           },
         ]
       }
+      scheduled_tasks: {
+        Row: {
+          created_at: string
+          id: string
+          last_run: string | null
+          next_run: string | null
+          task_type: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          last_run?: string | null
+          next_run?: string | null
+          task_type: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          last_run?: string | null
+          next_run?: string | null
+          task_type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       threat_modeling: {
         Row: {
           business_impact_detail: string | null

@@ -1,291 +1,158 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import MainLayout from '@/components/layout/MainLayout';
-import { supabase } from '@/integrations/supabase/client';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import { ArrowRight, BookOpen, AlertCircle } from 'lucide-react';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import BlogCardSkeleton from '@/components/blog/BlogCardSkeleton';
-import { toast } from '@/hooks/use-toast';
+import VulnerabilityCard from '@/components/vulnerabilities/VulnerabilityCard';
+import { Pagination } from '@/components/ui/pagination';
 import {
-  Pagination,
   PaginationContent,
+  PaginationEllipsis,
   PaginationItem,
   PaginationLink,
   PaginationNext,
   PaginationPrevious,
 } from '@/components/ui/pagination';
+import { supabase } from '@/integrations/supabase/client';
+import BlogCardSkeleton from '@/components/blog/BlogCardSkeleton';
 
-interface Vulnerability {
-  id: string;
-  title: string;
-  severity: string;
-  risk_rating: string;
-  description: string;
-  created_at: string;
-}
-
-const POSTS_PER_PAGE = 20;
-
-const BlogList = () => {
+const BlogList: React.FC = () => {
   const navigate = useNavigate();
-  const [blogs, setBlogs] = useState<Vulnerability[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
+  const pageSize = 20;
 
-  useEffect(() => {
-    const fetchBlogs = async () => {
-      try {
-        setIsLoading(true);
+  const { data: blogs, isLoading } = useQuery({
+    queryKey: ['blogs', currentPage, pageSize],
+    queryFn: async () => {
+      const startIndex = (currentPage - 1) * pageSize;
+      
+      // Get only AI-generated blogs (not CVE entries), filtered by not having CVE in the title
+      const { data, error, count } = await supabase
+        .from('vulnerabilities')
+        .select('*', { count: 'exact' })
+        .not('title', 'ilike', 'CVE-%') 
+        .not('severity', 'is', null)
+        .order('created_at', { ascending: false })
+        .range(startIndex, startIndex + pageSize - 1);
         
-        // Get only AI-generated blogs (those with severity populated and proper Japanese content)
-        const { data, error, count } = await supabase
-          .from('vulnerabilities')
-          .select('*', { count: 'exact' })
-          .not('severity', 'is', null)
-          .order('created_at', { ascending: false })
-          .range((currentPage - 1) * POSTS_PER_PAGE, currentPage * POSTS_PER_PAGE - 1);
-        
-        if (error) throw error;
-        
-        // Filter out raw vulnerability posts (those with CVE IDs in the title)
-        const filteredBlogs = data?.filter(blog => {
-          // Filter out posts that contain CVE IDs in the title
-          return !blog.title.includes('CVE-') && blog.severity !== null;
-        }) || [];
-        
-        // Remove any duplicates based on title
-        const uniqueBlogs = filteredBlogs.filter((blog, index, self) => 
-          index === self.findIndex((t) => t.title === blog.title)
-        );
-        
-        setBlogs(uniqueBlogs);
-        
-        if (count) {
-          setTotalPages(Math.ceil(count / POSTS_PER_PAGE));
-        }
-      } catch (error) {
-        console.error('Error fetching blogs:', error);
-        toast({
-          title: 'ブログの取得エラー',
-          description: `ブログ記事を取得できませんでした: ${error.message}`,
-          variant: 'destructive',
-        });
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    fetchBlogs();
-  }, [currentPage]);
+      if (error) throw error;
+      return { data: data || [], count };
+    },
+  });
 
-  const handleReadMore = (blogId: string) => {
-    navigate(`/blog/${blogId}`);
+  const totalPages = blogs?.count ? Math.ceil(blogs.count / pageSize) : 0;
+
+  const handleBlogClick = (id: string) => {
+    navigate(`/blog/${id}`);
   };
 
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
-    window.scrollTo(0, 0);
-  };
-
-  // Function to format date
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return new Intl.DateTimeFormat('ja-JP', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    }).format(date);
-  };
-
-  // Function to get severity badge color
-  const getSeverityBadgeClass = (severity: string) => {
-    switch (severity) {
-      case '高':
-        return 'bg-destructive';
-      case '中':
-        return 'bg-warning';
-      default:
-        return 'bg-success';
-    }
-  };
-
-  // Function to truncate description but keep it longer than before
-  const truncateDescription = (desc: string) => {
-    return desc.length > 300 ? desc.substring(0, 300) + '...' : desc;
-  };
-
-  // Generate array of page numbers to display
+  // Generate page numbers for pagination
   const getPageNumbers = () => {
-    const pageNumbers: number[] = [];
-    const maxPagesToShow = 5;
+    const pages = [];
+    const maxVisiblePages = 5;
     
-    if (totalPages <= maxPagesToShow) {
-      // If there are less than maxPagesToShow total pages, show all
+    if (totalPages <= maxVisiblePages) {
+      // Show all pages if there are few
       for (let i = 1; i <= totalPages; i++) {
-        pageNumbers.push(i);
+        pages.push(i);
       }
     } else {
       // Always show first page
-      pageNumbers.push(1);
+      pages.push(1);
       
-      // Calculate start and end of page range around current page
-      let start = Math.max(2, currentPage - 1);
-      let end = Math.min(totalPages - 1, currentPage + 1);
-      
-      // Adjust range to always show maxPagesToShow-2 pages (accounting for first and last)
-      if (end - start + 1 < maxPagesToShow - 2) {
-        if (start === 2) {
-          end = Math.min(start + (maxPagesToShow - 3), totalPages - 1);
-        } else if (end === totalPages - 1) {
-          start = Math.max(end - (maxPagesToShow - 3), 2);
-        }
+      if (currentPage > 3) {
+        // Show ellipsis if current page is far from start
+        pages.push(-1);
       }
       
-      // Add ellipsis after first page if needed
-      if (start > 2) {
-        pageNumbers.push(-1); // -1 represents ellipsis
+      // Show pages around current page
+      const startPage = Math.max(2, currentPage - 1);
+      const endPage = Math.min(totalPages - 1, currentPage + 1);
+      
+      for (let i = startPage; i <= endPage; i++) {
+        pages.push(i);
       }
       
-      // Add range of pages
-      for (let i = start; i <= end; i++) {
-        pageNumbers.push(i);
-      }
-      
-      // Add ellipsis before last page if needed
-      if (end < totalPages - 1) {
-        pageNumbers.push(-2); // -2 represents ellipsis
+      if (currentPage < totalPages - 2) {
+        // Show ellipsis if current page is far from end
+        pages.push(-2);
       }
       
       // Always show last page
-      pageNumbers.push(totalPages);
+      pages.push(totalPages);
     }
     
-    return pageNumbers;
+    return pages;
   };
 
   return (
-    <MainLayout>
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight flex items-center">
-            <BookOpen className="mr-2 h-6 w-6 text-primary" />
-            セキュリティブログ
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            AIによって生成された日本語のセキュリティ脆弱性分析と対策
-          </p>
-        </div>
-
+    <div className="container mx-auto p-4 min-h-screen">
+      <h1 className="text-3xl font-bold mb-6">セキュリティブログ</h1>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {Array(4).fill(0).map((_, idx) => (
-              <BlogCardSkeleton key={idx} />
-            ))}
-          </div>
-        ) : blogs.length === 0 ? (
-          <Alert>
-            <AlertCircle className="h-4 w-4" />
-            <AlertTitle>ブログ記事がありません</AlertTitle>
-            <AlertDescription>
-              管理パネルから「日本語ブログ生成」機能を使用して、セキュリティブログを生成してください。
-            </AlertDescription>
-          </Alert>
+          // Show skeletons while loading
+          Array(6).fill(0).map((_, index) => (
+            <BlogCardSkeleton key={index} />
+          ))
+        ) : blogs?.data && blogs.data.length > 0 ? (
+          blogs.data.map(blog => (
+            <VulnerabilityCard
+              key={blog.id}
+              cveId={blog.title}
+              title={blog.title}
+              description={blog.description || "詳細はありません"}
+              severity={blog.severity as 'critical' | 'high' | 'medium' | 'low'}
+              cvssScore={0}
+              publishedDate={blog.created_at}
+              affectedProducts={[]}
+              onClick={() => handleBlogClick(blog.id)}
+            />
+          ))
         ) : (
-          <>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {blogs.map((blog) => (
-                <Card key={blog.id} className="overflow-hidden hover:shadow-md transition-shadow">
-                  <CardHeader className="pb-2">
-                    <div className="flex justify-between items-start mb-2">
-                      <Badge className={getSeverityBadgeClass(blog.severity)}>
-                        {blog.severity}リスク
-                      </Badge>
-                      <span className="text-sm text-muted-foreground">
-                        {formatDate(blog.created_at)}
-                      </span>
-                    </div>
-                    <CardTitle className="text-xl">{blog.title}</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <p className="text-muted-foreground line-clamp-6">
-                      {truncateDescription(blog.description)}
-                    </p>
-                    <Separator />
-                    <div className="flex justify-between items-center">
-                      <Badge variant="outline">{blog.risk_rating}</Badge>
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        onClick={() => handleReadMore(blog.id)}
-                        className="flex items-center"
-                      >
-                        詳細を見る
-                        <ArrowRight className="ml-1 h-4 w-4" />
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-            
-            {totalPages > 1 && (
-              <Pagination className="mt-8">
-                <PaginationContent>
-                  {currentPage > 1 && (
-                    <PaginationItem>
-                      <PaginationPrevious 
-                        href="#" 
-                        onClick={(e) => {
-                          e.preventDefault();
-                          handlePageChange(currentPage - 1);
-                        }} 
-                      />
-                    </PaginationItem>
-                  )}
-                  
-                  {getPageNumbers().map((pageNum, idx) => (
-                    <PaginationItem key={idx}>
-                      {pageNum < 0 ? (
-                        <span className="px-4 py-2">...</span>
-                      ) : (
-                        <PaginationLink
-                          href="#"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            handlePageChange(pageNum);
-                          }}
-                          isActive={pageNum === currentPage}
-                        >
-                          {pageNum}
-                        </PaginationLink>
-                      )}
-                    </PaginationItem>
-                  ))}
-                  
-                  {currentPage < totalPages && (
-                    <PaginationItem>
-                      <PaginationNext 
-                        href="#" 
-                        onClick={(e) => {
-                          e.preventDefault();
-                          handlePageChange(currentPage + 1);
-                        }} 
-                      />
-                    </PaginationItem>
-                  )}
-                </PaginationContent>
-              </Pagination>
-            )}
-          </>
+          <div className="col-span-full text-center py-8">
+            <p>ブログ記事がありません。</p>
+          </div>
         )}
       </div>
-    </MainLayout>
+
+      {totalPages > 1 && (
+        <Pagination className="my-6">
+          <PaginationContent>
+            <PaginationItem>
+              <PaginationPrevious 
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                className={currentPage <= 1 ? "pointer-events-none opacity-50" : "cursor-pointer"} 
+              />
+            </PaginationItem>
+            
+            {getPageNumbers().map((page, index) => (
+              page < 0 ? (
+                <PaginationItem key={`ellipsis-${index}`}>
+                  <PaginationEllipsis />
+                </PaginationItem>
+              ) : (
+                <PaginationItem key={page}>
+                  <PaginationLink 
+                    isActive={page === currentPage}
+                    onClick={() => setCurrentPage(page)}
+                    className="cursor-pointer"
+                  >
+                    {page}
+                  </PaginationLink>
+                </PaginationItem>
+              )
+            ))}
+            
+            <PaginationItem>
+              <PaginationNext 
+                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                className={currentPage >= totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"} 
+              />
+            </PaginationItem>
+          </PaginationContent>
+        </Pagination>
+      )}
+    </div>
   );
 };
 

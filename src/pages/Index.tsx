@@ -1,239 +1,179 @@
 
-import React, { useState, useEffect } from 'react';
-import MainLayout from '@/components/layout/MainLayout';
+import React, { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
 import VulnerabilityCard from '@/components/vulnerabilities/VulnerabilityCard';
+import { Pagination } from '@/components/ui/pagination';
+import {
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from '@/components/ui/pagination';
 import { supabase } from '@/integrations/supabase/client';
-import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
-import VulnerabilityFilters from '@/components/vulnerabilities/VulnerabilityFilters';
-import { Skeleton } from '@/components/ui/skeleton';
+import BlogCardSkeleton from '@/components/blog/BlogCardSkeleton';
 
-interface Vulnerability {
-  id: string;
-  title: string;
-  description: string;
-  severity: 'critical' | 'high' | 'medium' | 'low';
-  cvss_score?: number;
-  published_date?: string;
-  affected_products?: string[];
-  exploit_status?: string;
-  created_at: string;
-}
-
-const POSTS_PER_PAGE = 20;
-
-const IndexPage = () => {
-  const [vulnerabilities, setVulnerabilities] = useState<Vulnerability[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [filters, setFilters] = useState({
-    severity: [] as string[],
-    exploitStatus: [] as string[],
-    searchQuery: '',
-  });
+const Index: React.FC = () => {
+  const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
+  const pageSize = 20; // Show 20 vulnerabilities per page
 
-  useEffect(() => {
-    fetchVulnerabilities();
-  }, [filters, currentPage]);
-
-  const fetchVulnerabilities = async () => {
-    setIsLoading(true);
-    try {
-      let query = supabase
+  const { data: vulnerabilities, isLoading } = useQuery({
+    queryKey: ['vulnerabilities', currentPage, pageSize],
+    queryFn: async () => {
+      const startIndex = (currentPage - 1) * pageSize;
+      
+      // Get vulnerabilities with pagination
+      const { data, error, count } = await supabase
         .from('vulnerabilities')
         .select('*', { count: 'exact' })
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .range(startIndex, startIndex + pageSize - 1);
+        
+      if (error) throw error;
+      return { data: data || [], count };
+    },
+  });
 
-      // Apply filters
-      if (filters.severity.length > 0) {
-        query = query.in('severity', filters.severity);
-      }
+  const totalPages = vulnerabilities?.count ? Math.ceil(vulnerabilities.count / pageSize) : 0;
 
-      if (filters.exploitStatus.length > 0) {
-        query = query.in('exploit_status', filters.exploitStatus);
-      }
-
-      if (filters.searchQuery) {
-        query = query.ilike('title', `%${filters.searchQuery}%`);
-      }
-
-      // Apply pagination
-      const from = (currentPage - 1) * POSTS_PER_PAGE;
-      const to = from + POSTS_PER_PAGE - 1;
-      
-      const { data, count, error } = await query.range(from, to);
-
-      if (error) {
-        throw error;
-      }
-
-      if (data) {
-        setVulnerabilities(data);
-        if (count) {
-          setTotalPages(Math.ceil(count / POSTS_PER_PAGE));
-        }
-      }
-    } catch (error) {
-      console.error('Error fetching vulnerabilities:', error);
-    } finally {
-      setIsLoading(false);
+  const handleVulnerabilityClick = (id: string) => {
+    // For blog posts (those without CVE in title), navigate to blog detail
+    const vulnerability = vulnerabilities?.data.find(v => v.id === id);
+    if (vulnerability && !vulnerability.title.match(/CVE-\d{4}-\d+/)) {
+      navigate(`/blog/${id}`);
+    } else {
+      // Show detail modal for CVEs (handled by parent component)
     }
   };
 
-  const handleFilterChange = (newFilters: any) => {
-    setFilters(newFilters);
-    setCurrentPage(1); // Reset to first page on filter change
-  };
-
-  const handleViewVulnerability = (id: string) => {
-    // Navigate to vulnerability detail page
-    window.location.href = `/vulnerabilities/${id}`;
-  };
-
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
-    window.scrollTo(0, 0);
-  };
-  
-  // Generate pagination numbers
+  // Generate page numbers for pagination
   const getPageNumbers = () => {
-    const pageNumbers: (number | string)[] = [];
-    const maxPagesToShow = 5;
+    const pages = [];
+    const maxVisiblePages = 5;
     
-    if (totalPages <= maxPagesToShow) {
+    if (totalPages <= maxVisiblePages) {
+      // Show all pages if there are few
       for (let i = 1; i <= totalPages; i++) {
-        pageNumbers.push(i);
+        pages.push(i);
       }
     } else {
-      pageNumbers.push(1);
+      // Always show first page
+      pages.push(1);
       
-      let start = Math.max(2, currentPage - 1);
-      let end = Math.min(totalPages - 1, currentPage + 1);
-      
-      if (end - start + 1 < maxPagesToShow - 2) {
-        if (start === 2) {
-          end = Math.min(start + (maxPagesToShow - 3), totalPages - 1);
-        } else if (end === totalPages - 1) {
-          start = Math.max(end - (maxPagesToShow - 3), 2);
-        }
+      if (currentPage > 3) {
+        // Show ellipsis if current page is far from start
+        pages.push(-1);
       }
       
-      if (start > 2) {
-        pageNumbers.push('...');
+      // Show pages around current page
+      const startPage = Math.max(2, currentPage - 1);
+      const endPage = Math.min(totalPages - 1, currentPage + 1);
+      
+      for (let i = startPage; i <= endPage; i++) {
+        pages.push(i);
       }
       
-      for (let i = start; i <= end; i++) {
-        pageNumbers.push(i);
+      if (currentPage < totalPages - 2) {
+        // Show ellipsis if current page is far from end
+        pages.push(-2);
       }
       
-      if (end < totalPages - 1) {
-        pageNumbers.push('...');
-      }
-      
-      pageNumbers.push(totalPages);
+      // Always show last page
+      pages.push(totalPages);
     }
     
-    return pageNumbers;
+    return pages;
   };
 
   return (
-    <MainLayout>
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Vulnerability Database</h1>
-          <p className="text-muted-foreground mt-1">
-            Browse the latest security vulnerabilities and CVEs
-          </p>
-        </div>
-
-        <VulnerabilityFilters onFilterChange={handleFilterChange} />
-
+    <div className="container mx-auto py-6">
+      <h1 className="text-3xl font-bold mb-6">最新の脆弱性情報</h1>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {isLoading ? (
-          <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-            {Array(6).fill(0).map((_, i) => (
-              <div key={i} className="flex flex-col space-y-3">
-                <Skeleton className="h-[200px] w-full rounded-xl" />
-              </div>
-            ))}
-          </div>
-        ) : (
-          <>
-            <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-              {vulnerabilities.length > 0 ? (
-                vulnerabilities.map((vulnerability) => (
-                  <VulnerabilityCard
-                    key={vulnerability.id}
-                    cveId={vulnerability.title.match(/CVE-\d{4}-\d+/)?.[0] || 'N/A'}
-                    title={vulnerability.title}
-                    description={vulnerability.description || 'No description available'}
-                    severity={vulnerability.severity || 'low'}
-                    cvssScore={vulnerability.cvss_score || 0}
-                    publishedDate={vulnerability.published_date || new Date(vulnerability.created_at).toLocaleDateString()}
-                    affectedProducts={vulnerability.affected_products || []}
-                    exploitStatus={vulnerability.exploit_status}
-                    onClick={() => handleViewVulnerability(vulnerability.id)}
-                  />
-                ))
-              ) : (
-                <div className="col-span-3 text-center py-10">
-                  <p className="text-muted-foreground">No vulnerabilities found matching your criteria</p>
-                </div>
-              )}
-            </div>
+          // Show skeletons while loading
+          Array(6).fill(0).map((_, index) => (
+            <BlogCardSkeleton key={index} />
+          ))
+        ) : vulnerabilities?.data && vulnerabilities.data.length > 0 ? (
+          vulnerabilities.data.map(vuln => {
+            // Extract CVE ID from title if available
+            const cveIdMatch = vuln.title.match(/CVE-\d{4}-\d+/);
+            const cveId = cveIdMatch ? cveIdMatch[0] : '';
             
-            {totalPages > 1 && (
-              <Pagination className="mt-8">
-                <PaginationContent>
-                  {currentPage > 1 && (
-                    <PaginationItem>
-                      <PaginationPrevious 
-                        href="#" 
-                        onClick={(e) => {
-                          e.preventDefault();
-                          handlePageChange(currentPage - 1);
-                        }} 
-                      />
-                    </PaginationItem>
-                  )}
-                  
-                  {getPageNumbers().map((pageNum, idx) => (
-                    <PaginationItem key={idx}>
-                      {pageNum === '...' ? (
-                        <span className="px-4 py-2">...</span>
-                      ) : (
-                        <PaginationLink
-                          href="#"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            handlePageChange(pageNum as number);
-                          }}
-                          isActive={pageNum === currentPage}
-                        >
-                          {pageNum}
-                        </PaginationLink>
-                      )}
-                    </PaginationItem>
-                  ))}
-                  
-                  {currentPage < totalPages && (
-                    <PaginationItem>
-                      <PaginationNext 
-                        href="#" 
-                        onClick={(e) => {
-                          e.preventDefault();
-                          handlePageChange(currentPage + 1);
-                        }} 
-                      />
-                    </PaginationItem>
-                  )}
-                </PaginationContent>
-              </Pagination>
-            )}
-          </>
+            // Get affected products if any
+            const affectedProducts = [];
+            if (vuln.title.includes('WordPress')) affectedProducts.push('WordPress');
+            if (vuln.title.includes('Apache')) affectedProducts.push('Apache');
+            if (vuln.title.includes('Microsoft')) affectedProducts.push('Microsoft');
+            if (vuln.title.includes('Linux')) affectedProducts.push('Linux');
+            if (vuln.title.includes('iOS')) affectedProducts.push('iOS');
+            if (vuln.title.includes('Android')) affectedProducts.push('Android');
+            
+            return (
+              <VulnerabilityCard
+                key={vuln.id}
+                cveId={cveId || vuln.title}
+                title={vuln.title}
+                description={vuln.description || "詳細はありません"}
+                severity={vuln.severity as 'critical' | 'high' | 'medium' | 'low' || 'low'}
+                cvssScore={0}
+                publishedDate={vuln.created_at}
+                affectedProducts={affectedProducts}
+                exploitStatus={vuln.risk_rating}
+                onClick={() => handleVulnerabilityClick(vuln.id)}
+              />
+            );
+          })
+        ) : (
+          <div className="col-span-full text-center py-8">
+            <p>脆弱性情報はありません。</p>
+          </div>
         )}
       </div>
-    </MainLayout>
+
+      {totalPages > 1 && (
+        <Pagination className="my-6">
+          <PaginationContent>
+            <PaginationItem>
+              <PaginationPrevious 
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                className={currentPage <= 1 ? "pointer-events-none opacity-50" : "cursor-pointer"} 
+              />
+            </PaginationItem>
+            
+            {getPageNumbers().map((page, index) => (
+              page < 0 ? (
+                <PaginationItem key={`ellipsis-${index}`}>
+                  <PaginationEllipsis />
+                </PaginationItem>
+              ) : (
+                <PaginationItem key={page}>
+                  <PaginationLink 
+                    isActive={page === currentPage}
+                    onClick={() => setCurrentPage(page)}
+                    className="cursor-pointer"
+                  >
+                    {page}
+                  </PaginationLink>
+                </PaginationItem>
+              )
+            ))}
+            
+            <PaginationItem>
+              <PaginationNext 
+                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                className={currentPage >= totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"} 
+              />
+            </PaginationItem>
+          </PaginationContent>
+        </Pagination>
+      )}
+    </div>
   );
 };
 
-export default IndexPage;
+export default Index;
