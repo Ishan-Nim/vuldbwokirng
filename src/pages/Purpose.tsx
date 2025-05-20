@@ -29,9 +29,9 @@ const Purpose = () => {
   
   return (
     <div className="space-y-6 container mx-auto px-4 py-6">
-      <h1 className="text-3xl font-bold">CyberSim: セキュリティ評価見積もり</h1>
+      <h1 className="text-3xl font-bold">サイバーシム: セキュリティ評価見積もり</h1>
       <p className="text-muted-foreground">
-        AIによる企業情報と専用評価を利用して、サイバーセキュリティサービスの動的な価格設定を生成します。
+        AIによる企業情報と専用評価を利用して、サイバーセキュリティサービスの価格設定を生成します。
       </p>
       
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">

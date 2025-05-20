@@ -11,11 +11,25 @@ interface MainLayoutProps {
 const MainLayout = ({ children }: MainLayoutProps) => {
   const location = useLocation();
   const currentPath = location.pathname;
+  const isAdminPage = currentPath.startsWith('/admin');
   
+  // Use English for admin pages, Japanese for user-facing pages
   const navLinks = [
-    { name: 'Vulnerability Database', path: '/', icon: <Database className="h-5 w-5" /> },
-    { name: 'Security Blog', path: '/blog', icon: <BookOpen className="h-5 w-5" /> },
-    { name: 'CyberSim Quotation', path: '/purpose', icon: <Target className="h-5 w-5" /> },
+    { 
+      name: isAdminPage ? 'Vulnerability Database' : '脆弱性データベース', 
+      path: '/', 
+      icon: <Database className="h-5 w-5" /> 
+    },
+    { 
+      name: isAdminPage ? 'Security Blog' : 'セキュリティブログ', 
+      path: '/blog', 
+      icon: <BookOpen className="h-5 w-5" /> 
+    },
+    { 
+      name: isAdminPage ? 'CyberSim Quotation' : 'サイバーシム見積', 
+      path: '/purpose', 
+      icon: <Target className="h-5 w-5" /> 
+    },
   ];
 
   return (
@@ -56,7 +70,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
       
       <footer className="bg-card dark:bg-card border-t py-4">
         <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
-          <p>eHow Vulnerability - AI-powered CVE Knowledge Base © {new Date().getFullYear()}</p>
+          <p>eHow Vulnerability - {isAdminPage ? 'AI-powered CVE Knowledge Base' : 'AI搭載CVE知識ベース'} © {new Date().getFullYear()}</p>
         </div>
       </footer>
     </div>

@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import VulnerabilityCard from '@/components/vulnerabilities/VulnerabilityCard';
@@ -109,7 +109,7 @@ const BlogList: React.FC = () => {
   return (
     <div className="container mx-auto p-4 min-h-screen">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
-        <h1 className="text-3xl font-bold">Security Blog</h1>
+        <h1 className="text-3xl font-bold">セキュリティブログ</h1>
         
         <div className="flex flex-col sm:flex-row w-full md:w-auto space-y-2 sm:space-y-0 sm:space-x-2">
           <SearchBar
@@ -119,7 +119,7 @@ const BlogList: React.FC = () => {
           />
           <Button variant="outline" size="sm" onClick={handleRefresh} className="flex items-center gap-1">
             <RefreshCw className="h-4 w-4" />
-            Refresh
+            更新
           </Button>
         </div>
       </div>
@@ -127,7 +127,7 @@ const BlogList: React.FC = () => {
       {activeSearchQuery && (
         <div className="mb-4">
           <p className="text-sm text-muted-foreground">
-            Search results for: <span className="font-medium">{activeSearchQuery}</span>
+            検索結果: <span className="font-medium">{activeSearchQuery}</span>
             <Button 
               variant="ghost" 
               size="sm" 
@@ -137,7 +137,7 @@ const BlogList: React.FC = () => {
                 setActiveSearchQuery('');
               }}
             >
-              Clear
+              クリア
             </Button>
           </p>
         </div>
@@ -155,7 +155,7 @@ const BlogList: React.FC = () => {
               key={blog.id}
               cveId={blog.title}
               title={blog.title}
-              description={blog.description || "No details available"}
+              description={blog.description || "詳細情報がありません"}
               severity={blog.severity as 'critical' | 'high' | 'medium' | 'low'}
               cvssScore={0}
               publishedDate={blog.created_at}
@@ -165,11 +165,11 @@ const BlogList: React.FC = () => {
           ))
         ) : (
           <div className="col-span-full text-center py-16 border rounded-lg bg-muted/30">
-            <p className="text-xl font-medium text-muted-foreground mb-4">No blog posts found</p>
+            <p className="text-xl font-medium text-muted-foreground mb-4">ブログ投稿が見つかりません</p>
             <p className="text-muted-foreground mb-6">
               {activeSearchQuery 
-                ? "No results match your search criteria." 
-                : "The database has been cleared or no blog posts have been created yet."}
+                ? "検索条件に一致する結果はありません。" 
+                : "データベースが空か、まだブログ投稿が作成されていません。"}
             </p>
             <div className="flex justify-center space-x-4">
               {activeSearchQuery && (
@@ -181,11 +181,11 @@ const BlogList: React.FC = () => {
                     setActiveSearchQuery('');
                   }}
                 >
-                  Clear Search
+                  検索をクリア
                 </Button>
               )}
               <Button variant="outline" size="sm" onClick={() => navigate('/admin')}>
-                Go to Admin
+                管理画面へ
               </Button>
             </div>
           </div>
