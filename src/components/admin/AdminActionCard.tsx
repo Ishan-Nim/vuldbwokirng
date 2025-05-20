@@ -2,11 +2,12 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { FileText, RefreshCw, ArrowDownUp, Clock } from 'lucide-react';
+import { FileText, RefreshCw, ArrowDownUp } from 'lucide-react';
+import { format } from 'date-fns';
 
 interface AdminActionCardProps {
   title: string;
@@ -18,6 +19,7 @@ interface AdminActionCardProps {
   className?: string;
   functionName?: string;
   task?: string;
+  nextScheduled?: string | null;
 }
 
 const AdminActionCard: React.FC<AdminActionCardProps> = ({
@@ -29,7 +31,8 @@ const AdminActionCard: React.FC<AdminActionCardProps> = ({
   onClick: externalOnClick,
   className,
   functionName,
-  task
+  task,
+  nextScheduled
 }) => {
   const [isLoading, setIsLoading] = useState(externalIsLoading || false);
   
@@ -51,6 +54,15 @@ const AdminActionCard: React.FC<AdminActionCardProps> = ({
     if (functionName === 'scheduled-tasks' && task === 'fetch-cve') return 'Run Task';
     if (functionName === 'scheduled-tasks' && task === 'generate-blogs') return 'Generate Blogs';
     return 'Execute';
+  };
+  
+  const formatScheduledTime = (timeString: string | null) => {
+    if (!timeString) return "Not scheduled";
+    try {
+      return format(new Date(timeString), 'yyyy-MM-dd HH:mm:ss');
+    } catch (error) {
+      return "Invalid date";
+    }
   };
   
   const handleClick = async () => {
@@ -102,6 +114,12 @@ const AdminActionCard: React.FC<AdminActionCardProps> = ({
           </div>
         </div>
         <CardDescription>{description}</CardDescription>
+        {nextScheduled && (
+          <div className="mt-2 flex items-center text-xs text-muted-foreground">
+            <Clock className="h-3 w-3 mr-1" />
+            <span>Next scheduled: {formatScheduledTime(nextScheduled)}</span>
+          </div>
+        )}
       </CardHeader>
       <CardContent className="flex-1"></CardContent>
       <CardFooter>

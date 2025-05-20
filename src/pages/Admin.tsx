@@ -97,92 +97,92 @@ const Admin = () => {
 
   return (
     <div className="container mx-auto p-4 min-h-screen">
-      <h1 className="text-3xl font-bold mb-6">管理ダッシュボード</h1>
+      <h1 className="text-3xl font-bold mb-6">Admin Dashboard</h1>
       
       <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className="space-y-4">
         <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="stats">統計</TabsTrigger>
-          <TabsTrigger value="actions">アクション</TabsTrigger>
-          <TabsTrigger value="generators">ジェネレーター</TabsTrigger>
+          <TabsTrigger value="stats">Statistics</TabsTrigger>
+          <TabsTrigger value="actions">Actions</TabsTrigger>
+          <TabsTrigger value="generators">Generators</TabsTrigger>
         </TabsList>
         
         <TabsContent value="stats" className="space-y-4">
           <div className="grid gap-4 md:grid-cols-3">
             <StatsCard 
-              title="脆弱性データ" 
-              value={isLoadingVulnCount ? "読み込み中..." : `${vulnerabilityCount}`}
-              description="データベース内の脆弱性の総数"
+              title="Vulnerability Data" 
+              value={isLoadingVulnCount ? "Loading..." : `${vulnerabilityCount}`}
+              description="Total vulnerabilities in database"
               icon={<FileText className="h-4 w-4 text-muted-foreground" />}
             />
             <StatsCard 
-              title="AI強化済み" 
-              value={isLoadingEnrichedCount ? "読み込み中..." : `${enrichedCount}`}
-              description={`強化率: ${vulnerabilityCount ? Math.round((enrichedCount || 0) / vulnerabilityCount * 100) : 0}%`}
+              title="AI Enhanced" 
+              value={isLoadingEnrichedCount ? "Loading..." : `${enrichedCount}`}
+              description={`Enhancement rate: ${vulnerabilityCount ? Math.round((enrichedCount || 0) / vulnerabilityCount * 100) : 0}%`}
               icon={<ArrowDownUp className="h-4 w-4 text-muted-foreground" />}
             />
             <StatsCard 
-              title="AIブログ" 
-              value={isLoadingBlogCount ? "読み込み中..." : `${blogCount}`}
-              description="生成されたAIブログ記事の数"
+              title="AI Blogs" 
+              value={isLoadingBlogCount ? "Loading..." : `${blogCount}`}
+              description="Generated AI blog articles"
               icon={<RefreshCw className="h-4 w-4 text-muted-foreground" />}
             />
           </div>
           
           <div className="grid gap-4 md:grid-cols-1">
             <Card className="p-4">
-              <h3 className="text-lg font-medium mb-4">スケジュール情報</h3>
+              <h3 className="text-lg font-medium mb-4">Schedule Information</h3>
               
               {isLoadingSchedules ? (
-                <div className="p-4">スケジュール情報を読み込み中...</div>
+                <div className="p-4">Loading schedule information...</div>
               ) : (
                 <div className="grid gap-4">
                   <div className="p-4 border rounded">
-                    <h4 className="font-medium">RSS取得スケジュール</h4>
+                    <h4 className="font-medium">RSS Fetch Schedule</h4>
                     <div className="mt-2 space-y-1">
                       <div className="flex justify-between">
-                        <span className="text-sm text-muted-foreground">次回実行:</span>
+                        <span className="text-sm text-muted-foreground">Next execution:</span>
                         <span className="text-sm font-medium flex items-center gap-1">
                           <Clock className="h-3.5 w-3.5" />
-                          {fetchTask ? formatDate(fetchTask.next_run) : "未スケジュール"}
+                          {fetchTask ? formatDate(fetchTask.next_run) : "Not scheduled"}
                         </span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-sm text-muted-foreground">前回実行:</span>
-                        <span className="text-sm">{fetchTask ? formatDate(fetchTask.last_run) : "未実行"}</span>
+                        <span className="text-sm text-muted-foreground">Last execution:</span>
+                        <span className="text-sm">{fetchTask ? formatDate(fetchTask.last_run) : "Never executed"}</span>
                       </div>
                     </div>
                   </div>
                   
                   <div className="p-4 border rounded">
-                    <h4 className="font-medium">AI強化スケジュール</h4>
+                    <h4 className="font-medium">AI Enhancement Schedule</h4>
                     <div className="mt-2 space-y-1">
                       <div className="flex justify-between">
-                        <span className="text-sm text-muted-foreground">次回実行:</span>
+                        <span className="text-sm text-muted-foreground">Next execution:</span>
                         <span className="text-sm font-medium flex items-center gap-1">
                           <Clock className="h-3.5 w-3.5" />
-                          {enrichTask ? formatDate(enrichTask.next_run) : "未スケジュール"}
+                          {enrichTask ? formatDate(enrichTask.next_run) : "Not scheduled"}
                         </span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-sm text-muted-foreground">前回実行:</span>
-                        <span className="text-sm">{enrichTask ? formatDate(enrichTask.last_run) : "未実行"}</span>
+                        <span className="text-sm text-muted-foreground">Last execution:</span>
+                        <span className="text-sm">{enrichTask ? formatDate(enrichTask.last_run) : "Never executed"}</span>
                       </div>
                     </div>
                   </div>
                   
                   <div className="p-4 border rounded">
-                    <h4 className="font-medium">ブログ生成スケジュール</h4>
+                    <h4 className="font-medium">Blog Generation Schedule</h4>
                     <div className="mt-2 space-y-1">
                       <div className="flex justify-between">
-                        <span className="text-sm text-muted-foreground">次回実行:</span>
+                        <span className="text-sm text-muted-foreground">Next execution:</span>
                         <span className="text-sm font-medium flex items-center gap-1">
                           <Clock className="h-3.5 w-3.5" />
-                          {blogGenTask ? formatDate(blogGenTask.next_run) : "未スケジュール"}
+                          {blogGenTask ? formatDate(blogGenTask.next_run) : "Not scheduled"}
                         </span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-sm text-muted-foreground">前回実行:</span>
-                        <span className="text-sm">{blogGenTask ? formatDate(blogGenTask.last_run) : "未実行"}</span>
+                        <span className="text-sm text-muted-foreground">Last execution:</span>
+                        <span className="text-sm">{blogGenTask ? formatDate(blogGenTask.last_run) : "Never executed"}</span>
                       </div>
                     </div>
                   </div>
@@ -194,31 +194,35 @@ const Admin = () => {
         
         <TabsContent value="actions" className="space-y-4 grid gap-4 md:grid-cols-2">
           <AdminActionCard 
-            title="CVEデータを取得" 
-            description="RSS機能を使用して最新のCVEデータを取得します"
+            title="Fetch CVE Data" 
+            description="Use RSS function to get the latest CVE data"
             functionName="fetch-cve-data"
             task="fetch-cve"
+            nextScheduled={fetchTask?.next_run}
           />
           
           <AdminActionCard 
-            title="CVEデータを強化" 
-            description="AIを使用して取得したCVEデータを強化します"
+            title="Enhance CVE Data" 
+            description="Use AI to enhance the fetched CVE data"
             functionName="enrich-cve-data"
             task="null"
+            nextScheduled={enrichTask?.next_run}
           />
           
           <AdminActionCard 
-            title="タスクを実行" 
-            description="スケジュールされたタスクを実行します"
+            title="Run Task" 
+            description="Execute scheduled tasks"
             functionName="scheduled-tasks"
             task="fetch-cve"
+            nextScheduled={fetchTask?.next_run}
           />
           
           <AdminActionCard 
-            title="ブログを生成" 
-            description="20件のユニークなブログ記事を生成します"
+            title="Generate Blogs" 
+            description="Generate 20 unique blog articles"
             functionName="scheduled-tasks"
             task="generate-blogs"
+            nextScheduled={blogGenTask?.next_run}
           />
         </TabsContent>
         
