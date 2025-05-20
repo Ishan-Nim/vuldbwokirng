@@ -68,6 +68,11 @@ export default {
                     high: '#dd6b20',
                     medium: '#d69e2e',
                     low: '#38a169'
+                },
+                // Add direct hex values for easier reference
+                dark: {
+                    background: '#272624',
+                    card: '#1d1c1d'
                 }
 			},
 			borderRadius: {
