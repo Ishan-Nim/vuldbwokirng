@@ -31,16 +31,21 @@ const BlogList = () => {
       try {
         setIsLoading(true);
         
-        // Get only Japanese blogs (those with severity populated but not technical_impact)
+        // Get only AI-generated blogs (those with severity populated)
         const { data, error } = await supabase
           .from('vulnerabilities')
           .select('*')
-          .not('severity', 'is', null)  // Japanese blogs have severity
+          .not('severity', 'is', null)  // AI-generated blogs have severity populated
           .order('created_at', { ascending: false });
         
         if (error) throw error;
         
-        setBlogs(data || []);
+        // Remove any duplicates based on title
+        const uniqueBlogs = data?.filter((blog, index, self) => 
+          index === self.findIndex((t) => t.title === blog.title)
+        ) || [];
+        
+        setBlogs(uniqueBlogs);
       } catch (error) {
         console.error('Error fetching blogs:', error);
         toast({
@@ -125,7 +130,7 @@ const BlogList = () => {
                   <CardTitle className="text-xl">{blog.title}</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <p className="text-muted-foreground line-clamp-3">
+                  <p className="text-muted-foreground line-clamp-4">
                     {blog.description}
                   </p>
                   <Separator />

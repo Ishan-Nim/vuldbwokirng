@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
 import VulnerabilityCard from '@/components/vulnerabilities/VulnerabilityCard';
@@ -20,66 +19,48 @@ const Index = () => {
   // Fetch AI-enriched vulnerabilities from the database
   useEffect(() => {
     const fetchVulnerabilities = async () => {
+      setIsLoading(true);
       try {
-        setIsLoading(true);
-        
+        // Get all vulnerabilities, including those from RSS feed
         const { data, error } = await supabase
           .from('vulnerabilities')
           .select('*')
-          .not('technical_impact', 'is', null)  // Only get entries with technical_impact (enriched)
           .order('created_at', { ascending: false });
           
         if (error) {
           throw error;
         }
         
-        // Transform the data to match our component props
-        const transformedData = data.map(vuln => {
-          // Extract CVE ID from title or use a generated one
-          const cveIdRegex = /CVE-\d{4}-\d+/;
-          const cveIdMatch = vuln.title?.match(cveIdRegex) || vuln.description?.match(cveIdRegex);
-          const cveId = cveIdMatch ? cveIdMatch[0] : `CVE-${new Date().getFullYear()}-XXXX`;
-          
-          // Generate a CVSS score based on severity
-          const cvssScore = 
-            vuln.severity === 'critical' ? 9.5 :
-            vuln.severity === 'high' ? 7.5 :
-            vuln.severity === 'medium' ? 5.0 : 3.0;
-            
-          // Generate affected systems as products
-          const affectedProducts = generateAffectedProducts(vuln);
-          
-          // Generate exploit status based on risk rating
-          const exploitStatus = generateExploitStatus(vuln.risk_rating);
-          
-          // Generate related CVEs (simulated)
-          const relatedCVEs = generateRelatedCVEs(cveId, vuln.title);
+        // Format the data for the vulnerability cards
+        const formattedData = (data || []).map(item => {
+          // Extract CVE ID from title or description if available
+          const cveIdMatch = item.title?.match(/CVE-\d{4}-\d+/) || 
+                        item.description?.match(/CVE-\d{4}-\d+/);
           
           return {
-            id: vuln.id,
-            cveId: cveId,
-            title: vuln.title,
-            description: vuln.description || 'No description available',
-            severity: vuln.severity || 'medium',
-            cvssScore: cvssScore,
-            publishedDate: new Date(vuln.created_at).toLocaleDateString(),
-            technicalAnalysis: vuln.technical_impact || 'No technical analysis available',
-            businessImpact: vuln.business_impact || 'No business impact analysis available',
-            exploitStatus: exploitStatus,
-            affectedProducts: affectedProducts,
-            riskRating: vuln.risk_rating || 'medium',
-            knownExploits: exploitStatus,
-            mitigationStrategies: generateMitigationStrategies(vuln.severity),
-            relatedCVEs: relatedCVEs
+            id: item.id,
+            cveId: cveIdMatch ? cveIdMatch[0] : 'No CVE ID',
+            title: item.title || 'Unknown Vulnerability',
+            description: item.description || 'No description available',
+            severity: item.severity || 'medium', // Default to medium severity if not specified
+            cvssScore: 5.5, // Default CVSS score
+            publishedDate: new Date(item.created_at).toLocaleDateString(),
+            technicalAnalysis: item.technical_impact || 'No technical analysis available',
+            businessImpact: item.business_impact || 'Potential business impact not specified',
+            knownExploits: 'No known exploits',
+            mitigationStrategies: 'Follow standard security practices',
+            affectedProducts: ['Web Applications'],
+            exploitStatus: 'Unknown',
+            riskRating: item.risk_rating || 'Medium'
           };
         });
         
-        setVulnerabilities(transformedData);
+        setVulnerabilities(formattedData);
       } catch (error) {
         console.error('Error fetching vulnerabilities:', error);
         toast({
-          title: 'Error fetching vulnerabilities',
-          description: error.message,
+          title: 'Error',
+          description: 'Failed to fetch vulnerabilities',
           variant: 'destructive',
         });
       } finally {
