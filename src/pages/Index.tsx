@@ -46,16 +46,14 @@ const Index = () => {
             vuln.severity === 'high' ? 7.5 :
             vuln.severity === 'medium' ? 5.0 : 3.0;
             
-          // Generate affected products from business_impact
-          const affectedProducts = vuln.business_impact ? 
-            [vuln.business_impact.split('.')[0]] : 
-            ['Unknown System'];
+          // Generate affected systems as products
+          const affectedProducts = generateAffectedProducts(vuln);
           
           // Generate exploit status based on risk rating
-          const exploitStatus = 
-            vuln.risk_rating === 'critical' ? 'Actively Exploited' : 
-            vuln.risk_rating === 'high' ? 'Exploit Available' : 
-            'No Known Exploits';
+          const exploitStatus = generateExploitStatus(vuln.risk_rating);
+          
+          // Generate related CVEs (simulated)
+          const relatedCVEs = generateRelatedCVEs(cveId, vuln.title);
           
           return {
             id: vuln.id,
@@ -71,7 +69,8 @@ const Index = () => {
             affectedProducts: affectedProducts,
             riskRating: vuln.risk_rating || 'medium',
             knownExploits: exploitStatus,
-            mitigationStrategies: 'Update to the latest version and follow vendor recommendations.'
+            mitigationStrategies: generateMitigationStrategies(vuln.severity),
+            relatedCVEs: relatedCVEs
           };
         });
         
@@ -90,6 +89,109 @@ const Index = () => {
     
     fetchVulnerabilities();
   }, []);
+
+  // Helper function to generate affected products
+  const generateAffectedProducts = (vuln) => {
+    // Extract potential product names from title and business_impact
+    const titleWords = vuln.title.split(' ');
+    const productWords = titleWords.filter(w => w.length > 3 && /^[A-Z]/.test(w));
+    
+    let products = [];
+    
+    // Add product from title if it exists
+    if (productWords.length > 0) {
+      products.push(productWords[0]);
+    }
+    
+    // Add product from business impact if available
+    if (vuln.business_impact) {
+      const impactSentences = vuln.business_impact.split('.');
+      if (impactSentences.length > 0) {
+        const words = impactSentences[0].split(' ');
+        const potentialProduct = words.find(w => w.length > 3 && /^[A-Z]/.test(w));
+        if (potentialProduct && !products.includes(potentialProduct)) {
+          products.push(potentialProduct);
+        }
+      }
+    }
+    
+    // Generate more affected products based on vulnerability type
+    if (vuln.title.toLowerCase().includes('sql')) {
+      products.push('Database Systems');
+    }
+    
+    if (vuln.title.toLowerCase().includes('xss') || vuln.title.toLowerCase().includes('cross-site')) {
+      products.push('Web Applications');
+    }
+    
+    if (vuln.title.toLowerCase().includes('remote')) {
+      products.push('Network Services');
+    }
+    
+    // Ensure we have at least some default values if nothing was detected
+    if (products.length === 0) {
+      products = ['Affected System'];
+    }
+    
+    return [...new Set(products)]; // Remove duplicates
+  };
+
+  // Helper function to generate exploit status
+  const generateExploitStatus = (riskRating) => {
+    if (!riskRating) return 'No Known Exploits';
+    
+    switch (riskRating.toLowerCase()) {
+      case 'critical':
+        return 'Actively Exploited';
+      case 'high':
+        return 'Exploit Available';
+      case 'medium':
+        return 'Proof of Concept';
+      default:
+        return 'No Known Exploits';
+    }
+  };
+
+  // Helper function to generate related CVEs (simulated)
+  const generateRelatedCVEs = (cveId, title) => {
+    if (!cveId.match(/CVE-\d{4}-\d+/)) return [];
+    
+    const year = cveId.match(/\d{4}/)[0];
+    const keywords = title.toLowerCase().split(' ');
+    
+    // Only generate related CVEs for certain vulnerability types
+    if (keywords.some(k => ['sql', 'injection', 'xss', 'overflow', 'execution'].includes(k))) {
+      const cveNumber = parseInt(cveId.split('-')[2]);
+      const relatedIds = [
+        `CVE-${year}-${cveNumber + 1}`, 
+        `CVE-${year}-${cveNumber - 1}`
+      ];
+      return relatedIds;
+    }
+    
+    return [];
+  };
+
+  // Helper function to generate mitigation strategies
+  const generateMitigationStrategies = (severity) => {
+    const commonStrategy = "Update to the latest version and follow vendor recommendations.";
+    
+    if (!severity) return commonStrategy;
+    
+    switch (severity.toLowerCase()) {
+      case 'critical':
+        return "Immediately patch affected systems or isolate them until a patch is applied. Implement additional network security controls and monitor for suspicious activity." + 
+               " Update to the latest version as soon as possible.";
+      case 'high':
+        return "Apply security patches promptly and review system configurations for additional hardening opportunities." +
+               " Update to the latest version and implement recommended security controls.";
+      case 'medium':
+        return "Apply updates according to your patch management policy and review system access controls." +
+               " Update to the latest version during your next maintenance window.";
+      default:
+        return commonStrategy;
+    }
+  };
 
   // Filter vulnerabilities based on search query and severity
   const filteredVulnerabilities = vulnerabilities.filter(vuln => {
@@ -126,7 +228,7 @@ const Index = () => {
           </h1>
           <p className="text-muted-foreground mt-1 flex items-center">
             <Bot className="mr-2 h-4 w-4" />
-            AI-analyzed CVE entries with technical impact assessment
+            AI-analyzed CVE entries with comprehensive impact assessment
           </p>
         </div>
 
@@ -171,6 +273,7 @@ const Index = () => {
                     cvssScore={vuln.cvssScore}
                     publishedDate={vuln.publishedDate}
                     affectedProducts={vuln.affectedProducts}
+                    exploitStatus={vuln.exploitStatus}
                     onClick={() => openVulnerabilityDetails(vuln)}
                   />
                 ))}
