@@ -1,278 +1,239 @@
+
 import React, { useState, useEffect } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
 import VulnerabilityCard from '@/components/vulnerabilities/VulnerabilityCard';
-import VulnerabilityFilters from '@/components/vulnerabilities/VulnerabilityFilters';
-import { VulnerabilityDetailModal } from '@/components/vulnerabilities/VulnerabilityDetailModal';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { AlertCircle, Shield, Loader2, Bot } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/hooks/use-toast';
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
+import VulnerabilityFilters from '@/components/vulnerabilities/VulnerabilityFilters';
+import { Skeleton } from '@/components/ui/skeleton';
 
-const Index = () => {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [severityFilter, setSeverityFilter] = useState('all');
-  const [selectedVulnerability, setSelectedVulnerability] = useState(null);
-  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
-  const [vulnerabilities, setVulnerabilities] = useState([]);
+interface Vulnerability {
+  id: string;
+  title: string;
+  description: string;
+  severity: 'critical' | 'high' | 'medium' | 'low';
+  cvss_score?: number;
+  published_date?: string;
+  affected_products?: string[];
+  exploit_status?: string;
+  created_at: string;
+}
+
+const POSTS_PER_PAGE = 20;
+
+const IndexPage = () => {
+  const [vulnerabilities, setVulnerabilities] = useState<Vulnerability[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  
-  // Fetch AI-enriched vulnerabilities from the database
-  useEffect(() => {
-    const fetchVulnerabilities = async () => {
-      setIsLoading(true);
-      try {
-        // Get all vulnerabilities, including those from RSS feed
-        const { data, error } = await supabase
-          .from('vulnerabilities')
-          .select('*')
-          .order('created_at', { ascending: false });
-          
-        if (error) {
-          throw error;
-        }
-        
-        // Format the data for the vulnerability cards
-        const formattedData = (data || []).map(item => {
-          // Extract CVE ID from title or description if available
-          const cveIdMatch = item.title?.match(/CVE-\d{4}-\d+/) || 
-                        item.description?.match(/CVE-\d{4}-\d+/);
-          
-          return {
-            id: item.id,
-            cveId: cveIdMatch ? cveIdMatch[0] : 'No CVE ID',
-            title: item.title || 'Unknown Vulnerability',
-            description: item.description || 'No description available',
-            severity: item.severity || 'medium', // Default to medium severity if not specified
-            cvssScore: 5.5, // Default CVSS score
-            publishedDate: new Date(item.created_at).toLocaleDateString(),
-            technicalAnalysis: item.technical_impact || 'No technical analysis available',
-            businessImpact: item.business_impact || 'Potential business impact not specified',
-            knownExploits: 'No known exploits',
-            mitigationStrategies: 'Follow standard security practices',
-            affectedProducts: ['Web Applications'],
-            exploitStatus: 'Unknown',
-            riskRating: item.risk_rating || 'Medium'
-          };
-        });
-        
-        setVulnerabilities(formattedData);
-      } catch (error) {
-        console.error('Error fetching vulnerabilities:', error);
-        toast({
-          title: 'Error',
-          description: 'Failed to fetch vulnerabilities',
-          variant: 'destructive',
-        });
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    fetchVulnerabilities();
-  }, []);
-
-  // Helper function to generate affected products
-  const generateAffectedProducts = (vuln) => {
-    // Extract potential product names from title and business_impact
-    const titleWords = vuln.title.split(' ');
-    const productWords = titleWords.filter(w => w.length > 3 && /^[A-Z]/.test(w));
-    
-    let products = [];
-    
-    // Add product from title if it exists
-    if (productWords.length > 0) {
-      products.push(productWords[0]);
-    }
-    
-    // Add product from business impact if available
-    if (vuln.business_impact) {
-      const impactSentences = vuln.business_impact.split('.');
-      if (impactSentences.length > 0) {
-        const words = impactSentences[0].split(' ');
-        const potentialProduct = words.find(w => w.length > 3 && /^[A-Z]/.test(w));
-        if (potentialProduct && !products.includes(potentialProduct)) {
-          products.push(potentialProduct);
-        }
-      }
-    }
-    
-    // Generate more affected products based on vulnerability type
-    if (vuln.title.toLowerCase().includes('sql')) {
-      products.push('Database Systems');
-    }
-    
-    if (vuln.title.toLowerCase().includes('xss') || vuln.title.toLowerCase().includes('cross-site')) {
-      products.push('Web Applications');
-    }
-    
-    if (vuln.title.toLowerCase().includes('remote')) {
-      products.push('Network Services');
-    }
-    
-    // Ensure we have at least some default values if nothing was detected
-    if (products.length === 0) {
-      products = ['Affected System'];
-    }
-    
-    return [...new Set(products)]; // Remove duplicates
-  };
-
-  // Helper function to generate exploit status
-  const generateExploitStatus = (riskRating) => {
-    if (!riskRating) return 'No Known Exploits';
-    
-    switch (riskRating.toLowerCase()) {
-      case 'critical':
-        return 'Actively Exploited';
-      case 'high':
-        return 'Exploit Available';
-      case 'medium':
-        return 'Proof of Concept';
-      default:
-        return 'No Known Exploits';
-    }
-  };
-
-  // Helper function to generate related CVEs (simulated)
-  const generateRelatedCVEs = (cveId, title) => {
-    if (!cveId.match(/CVE-\d{4}-\d+/)) return [];
-    
-    const year = cveId.match(/\d{4}/)[0];
-    const keywords = title.toLowerCase().split(' ');
-    
-    // Only generate related CVEs for certain vulnerability types
-    if (keywords.some(k => ['sql', 'injection', 'xss', 'overflow', 'execution'].includes(k))) {
-      const cveNumber = parseInt(cveId.split('-')[2]);
-      const relatedIds = [
-        `CVE-${year}-${cveNumber + 1}`, 
-        `CVE-${year}-${cveNumber - 1}`
-      ];
-      return relatedIds;
-    }
-    
-    return [];
-  };
-
-  // Helper function to generate mitigation strategies
-  const generateMitigationStrategies = (severity) => {
-    const commonStrategy = "Update to the latest version and follow vendor recommendations.";
-    
-    if (!severity) return commonStrategy;
-    
-    switch (severity.toLowerCase()) {
-      case 'critical':
-        return "Immediately patch affected systems or isolate them until a patch is applied. Implement additional network security controls and monitor for suspicious activity." + 
-               " Update to the latest version as soon as possible.";
-      case 'high':
-        return "Apply security patches promptly and review system configurations for additional hardening opportunities." +
-               " Update to the latest version and implement recommended security controls.";
-      case 'medium':
-        return "Apply updates according to your patch management policy and review system access controls." +
-               " Update to the latest version during your next maintenance window.";
-      default:
-        return commonStrategy;
-    }
-  };
-
-  // Filter vulnerabilities based on search query and severity
-  const filteredVulnerabilities = vulnerabilities.filter(vuln => {
-    const matchesSearch = searchQuery === '' || 
-      vuln.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      vuln.cveId.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      vuln.description.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    const matchesSeverity = severityFilter === 'all' || vuln.severity === severityFilter;
-    
-    return matchesSearch && matchesSeverity;
+  const [filters, setFilters] = useState({
+    severity: [] as string[],
+    exploitStatus: [] as string[],
+    searchQuery: '',
   });
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
-  const openVulnerabilityDetails = (vulnerability) => {
-    setSelectedVulnerability(vulnerability);
-    setIsDetailModalOpen(true);
+  useEffect(() => {
+    fetchVulnerabilities();
+  }, [filters, currentPage]);
+
+  const fetchVulnerabilities = async () => {
+    setIsLoading(true);
+    try {
+      let query = supabase
+        .from('vulnerabilities')
+        .select('*', { count: 'exact' })
+        .order('created_at', { ascending: false });
+
+      // Apply filters
+      if (filters.severity.length > 0) {
+        query = query.in('severity', filters.severity);
+      }
+
+      if (filters.exploitStatus.length > 0) {
+        query = query.in('exploit_status', filters.exploitStatus);
+      }
+
+      if (filters.searchQuery) {
+        query = query.ilike('title', `%${filters.searchQuery}%`);
+      }
+
+      // Apply pagination
+      const from = (currentPage - 1) * POSTS_PER_PAGE;
+      const to = from + POSTS_PER_PAGE - 1;
+      
+      const { data, count, error } = await query.range(from, to);
+
+      if (error) {
+        throw error;
+      }
+
+      if (data) {
+        setVulnerabilities(data);
+        if (count) {
+          setTotalPages(Math.ceil(count / POSTS_PER_PAGE));
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching vulnerabilities:', error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleClearFilters = () => {
-    setSearchQuery('');
-    setSeverityFilter('all');
+  const handleFilterChange = (newFilters: any) => {
+    setFilters(newFilters);
+    setCurrentPage(1); // Reset to first page on filter change
   };
 
-  const totalCount = vulnerabilities.length;
-  const filteredCount = filteredVulnerabilities.length;
+  const handleViewVulnerability = (id: string) => {
+    // Navigate to vulnerability detail page
+    window.location.href = `/vulnerabilities/${id}`;
+  };
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    window.scrollTo(0, 0);
+  };
+  
+  // Generate pagination numbers
+  const getPageNumbers = () => {
+    const pageNumbers: (number | string)[] = [];
+    const maxPagesToShow = 5;
+    
+    if (totalPages <= maxPagesToShow) {
+      for (let i = 1; i <= totalPages; i++) {
+        pageNumbers.push(i);
+      }
+    } else {
+      pageNumbers.push(1);
+      
+      let start = Math.max(2, currentPage - 1);
+      let end = Math.min(totalPages - 1, currentPage + 1);
+      
+      if (end - start + 1 < maxPagesToShow - 2) {
+        if (start === 2) {
+          end = Math.min(start + (maxPagesToShow - 3), totalPages - 1);
+        } else if (end === totalPages - 1) {
+          start = Math.max(end - (maxPagesToShow - 3), 2);
+        }
+      }
+      
+      if (start > 2) {
+        pageNumbers.push('...');
+      }
+      
+      for (let i = start; i <= end; i++) {
+        pageNumbers.push(i);
+      }
+      
+      if (end < totalPages - 1) {
+        pageNumbers.push('...');
+      }
+      
+      pageNumbers.push(totalPages);
+    }
+    
+    return pageNumbers;
+  };
 
   return (
     <MainLayout>
       <div className="space-y-6">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight flex items-center">
-            <Shield className="mr-2 h-6 w-6 text-primary" />
-            CVE RSS Enriched Vulnerability Feed
-          </h1>
-          <p className="text-muted-foreground mt-1 flex items-center">
-            <Bot className="mr-2 h-4 w-4" />
-            AI-analyzed CVE entries with comprehensive impact assessment
+          <h1 className="text-2xl font-bold tracking-tight">Vulnerability Database</h1>
+          <p className="text-muted-foreground mt-1">
+            Browse the latest security vulnerabilities and CVEs
           </p>
         </div>
 
-        <VulnerabilityFilters
-          searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
-          severityFilter={severityFilter}
-          onSeverityChange={setSeverityFilter}
-          onClearFilters={handleClearFilters}
-        />
+        <VulnerabilityFilters onFilterChange={handleFilterChange} />
 
         {isLoading ? (
-          <div className="flex justify-center items-center py-16">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            <span className="ml-3 text-lg font-medium">Loading enriched vulnerabilities...</span>
+          <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+            {Array(6).fill(0).map((_, i) => (
+              <div key={i} className="flex flex-col space-y-3">
+                <Skeleton className="h-[200px] w-full rounded-xl" />
+              </div>
+            ))}
           </div>
         ) : (
           <>
-            <div className="flex items-center justify-between">
-              <div className="text-sm text-muted-foreground">
-                Displaying <span className="font-medium">{filteredCount}</span> of <span className="font-medium">{totalCount}</span> AI-enriched CVE entries
-              </div>
-            </div>
-
-            {filteredVulnerabilities.length === 0 ? (
-              <Alert>
-                <AlertCircle className="h-4 w-4" />
-                <AlertTitle>No enriched vulnerabilities found</AlertTitle>
-                <AlertDescription>
-                  No AI-enriched vulnerabilities match your current search criteria. Try adjusting your filters or enriching more CVEs from the admin panel.
-                </AlertDescription>
-              </Alert>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {filteredVulnerabilities.map((vuln) => (
+            <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+              {vulnerabilities.length > 0 ? (
+                vulnerabilities.map((vulnerability) => (
                   <VulnerabilityCard
-                    key={vuln.id}
-                    cveId={vuln.cveId}
-                    title={vuln.title}
-                    description={vuln.description}
-                    severity={vuln.severity}
-                    cvssScore={vuln.cvssScore}
-                    publishedDate={vuln.publishedDate}
-                    affectedProducts={vuln.affectedProducts}
-                    exploitStatus={vuln.exploitStatus}
-                    onClick={() => openVulnerabilityDetails(vuln)}
+                    key={vulnerability.id}
+                    cveId={vulnerability.title.match(/CVE-\d{4}-\d+/)?.[0] || 'N/A'}
+                    title={vulnerability.title}
+                    description={vulnerability.description || 'No description available'}
+                    severity={vulnerability.severity || 'low'}
+                    cvssScore={vulnerability.cvss_score || 0}
+                    publishedDate={vulnerability.published_date || new Date(vulnerability.created_at).toLocaleDateString()}
+                    affectedProducts={vulnerability.affected_products || []}
+                    exploitStatus={vulnerability.exploit_status}
+                    onClick={() => handleViewVulnerability(vulnerability.id)}
                   />
-                ))}
-              </div>
+                ))
+              ) : (
+                <div className="col-span-3 text-center py-10">
+                  <p className="text-muted-foreground">No vulnerabilities found matching your criteria</p>
+                </div>
+              )}
+            </div>
+            
+            {totalPages > 1 && (
+              <Pagination className="mt-8">
+                <PaginationContent>
+                  {currentPage > 1 && (
+                    <PaginationItem>
+                      <PaginationPrevious 
+                        href="#" 
+                        onClick={(e) => {
+                          e.preventDefault();
+                          handlePageChange(currentPage - 1);
+                        }} 
+                      />
+                    </PaginationItem>
+                  )}
+                  
+                  {getPageNumbers().map((pageNum, idx) => (
+                    <PaginationItem key={idx}>
+                      {pageNum === '...' ? (
+                        <span className="px-4 py-2">...</span>
+                      ) : (
+                        <PaginationLink
+                          href="#"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            handlePageChange(pageNum as number);
+                          }}
+                          isActive={pageNum === currentPage}
+                        >
+                          {pageNum}
+                        </PaginationLink>
+                      )}
+                    </PaginationItem>
+                  ))}
+                  
+                  {currentPage < totalPages && (
+                    <PaginationItem>
+                      <PaginationNext 
+                        href="#" 
+                        onClick={(e) => {
+                          e.preventDefault();
+                          handlePageChange(currentPage + 1);
+                        }} 
+                      />
+                    </PaginationItem>
+                  )}
+                </PaginationContent>
+              </Pagination>
             )}
           </>
         )}
       </div>
-
-      {selectedVulnerability && (
-        <VulnerabilityDetailModal
-          isOpen={isDetailModalOpen}
-          onClose={() => setIsDetailModalOpen(false)}
-          vulnerability={selectedVulnerability}
-        />
-      )}
     </MainLayout>
   );
 };
 
-export default Index;
+export default IndexPage;
