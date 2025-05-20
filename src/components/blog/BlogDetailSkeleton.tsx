@@ -1,14 +1,13 @@
 
 import React from 'react';
-import MainLayout from '@/components/layout/MainLayout';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const BlogDetailSkeleton = () => {
   return (
-    <MainLayout>
-      <div className="py-6 space-y-6">
+    <div className="container mx-auto px-4 py-6 max-w-6xl">
+      <div className="space-y-6">
         <Skeleton className="h-9 w-36" />
         
         <div>
@@ -22,10 +21,10 @@ const BlogDetailSkeleton = () => {
 
         <Tabs defaultValue="overview">
           <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="overview" disabled>概要</TabsTrigger>
-            <TabsTrigger value="technical" disabled>技術的詳細</TabsTrigger>
-            <TabsTrigger value="remediation" disabled>対策</TabsTrigger>
-            <TabsTrigger value="resources" disabled>参考資料</TabsTrigger>
+            <TabsTrigger value="overview" disabled>Overview</TabsTrigger>
+            <TabsTrigger value="technical" disabled>Technical Details</TabsTrigger>
+            <TabsTrigger value="remediation" disabled>Remediation</TabsTrigger>
+            <TabsTrigger value="resources" disabled>Resources</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-4 mt-4">
@@ -66,7 +65,7 @@ const BlogDetailSkeleton = () => {
           </TabsContent>
         </Tabs>
       </div>
-    </MainLayout>
+    </div>
   );
 };
 

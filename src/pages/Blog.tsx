@@ -1,7 +1,5 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import MainLayout from '@/components/layout/MainLayout';
 import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -237,34 +235,32 @@ const Blog = () => {
   
   if (error || !vulnerability) {
     return (
-      <MainLayout>
-        <div className="py-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <AlertCircle className="text-destructive mr-2 h-5 w-5" />
-                Error
-              </CardTitle>
-              <CardDescription>
-                {error || "Blog post not found."}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button onClick={handleBack} variant="outline" size="sm" className="mt-4">
-                <ArrowLeft className="mr-2 h-4 w-4" /> Back to Blog List
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-      </MainLayout>
+      <div className="container mx-auto px-4 py-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <AlertCircle className="text-destructive mr-2 h-5 w-5" />
+              Error
+            </CardTitle>
+            <CardDescription>
+              {error || "Blog post not found."}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button onClick={handleBack} variant="outline" size="sm" className="mt-4">
+              <ArrowLeft className="mr-2 h-4 w-4" /> Back to Blog List
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
     );
   }
 
   const exploitExample = getExampleExploit();
 
   return (
-    <MainLayout>
-      <div className="py-6 space-y-6">
+    <div className="container mx-auto px-4 py-6 max-w-6xl">
+      <div className="space-y-6">
         <Button onClick={handleBack} variant="outline" size="sm">
           <ArrowLeft className="mr-2 h-4 w-4" /> Back to Blog List
         </Button>
@@ -378,7 +374,7 @@ const Blog = () => {
             )}
           </TabsContent>
 
-          {/* New Exploit Examples Tab */}
+          {/* Example Exploits Tab */}
           <TabsContent value="exploit" className="mt-4">
             <Card>
               <CardHeader>
@@ -413,7 +409,7 @@ const Blog = () => {
             </Card>
           </TabsContent>
 
-          {/* Remediation Tab - Improved readability */}
+          {/* Remediation Tab */}
           <TabsContent value="remediation" className="mt-4">
             <Card>
               <CardHeader>
@@ -494,7 +490,7 @@ const Blog = () => {
           </TabsContent>
         </Tabs>
       </div>
-    </MainLayout>
+    </div>
   );
 };
 
