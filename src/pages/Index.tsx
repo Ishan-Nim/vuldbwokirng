@@ -27,6 +27,7 @@ const Index = () => {
           .from('vulnerabilities')
           .select('*')
           .not('technical_impact', 'is', null)  // Only get entries with technical_impact (enriched)
+          .is('severity', null) // Get only RSS enriched vulnerabilities, not Japanese blogs
           .order('created_at', { ascending: false });
           
         if (error) {
@@ -123,11 +124,11 @@ const Index = () => {
         <div>
           <h1 className="text-2xl font-bold tracking-tight flex items-center">
             <Shield className="mr-2 h-6 w-6 text-primary" />
-            Enriched Vulnerability Database
+            CVE RSS Enriched Vulnerability Feed
           </h1>
           <p className="text-muted-foreground mt-1 flex items-center">
             <Bot className="mr-2 h-4 w-4" />
-            AI-analyzed security intelligence with technical and business impact assessment
+            AI-analyzed CVE entries with technical impact assessment
           </p>
         </div>
 
@@ -148,7 +149,7 @@ const Index = () => {
           <>
             <div className="flex items-center justify-between">
               <div className="text-sm text-muted-foreground">
-                Displaying <span className="font-medium">{filteredCount}</span> of <span className="font-medium">{totalCount}</span> AI-enriched vulnerabilities
+                Displaying <span className="font-medium">{filteredCount}</span> of <span className="font-medium">{totalCount}</span> AI-enriched CVE entries
               </div>
             </div>
 
