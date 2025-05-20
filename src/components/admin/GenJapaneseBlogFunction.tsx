@@ -34,7 +34,7 @@ const GenJapaneseBlogFunction: React.FC = () => {
           .select('id, title, created_at')
           .not('title', 'ilike', 'CVE-%')
           .order('created_at', { ascending: false })
-          .limit(5);
+          .limit(10); // Increased limit to show more blogs
 
         if (error) throw error;
         
@@ -164,7 +164,7 @@ const GenJapaneseBlogFunction: React.FC = () => {
 
             {/* Display generated blog link - HIGHLIGHTED AND MORE PROMINENT NOW */}
             {generatedBlogId && (
-              <div className="border rounded-md p-4 bg-blue-50 dark:bg-blue-950/30">
+              <div className="border-2 rounded-md p-4 bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800">
                 <label className="text-sm font-medium block mb-2 text-blue-700 dark:text-blue-300">Generated Blog URL</label>
                 <div className="flex flex-col sm:flex-row gap-2">
                   <div className="flex-1">
@@ -216,8 +216,8 @@ const GenJapaneseBlogFunction: React.FC = () => {
       
       {/* Add ProcessingLogs component to display generated blog links */}
       <ProcessingLogs 
-        title="Recent Generated Blogs" 
-        description="Recently generated security blog posts"
+        title="Manually Generated Blog Posts" 
+        description="Your Japanese blog posts ready to view or share"
         blogLinks={generatedBlogs}
       />
     </div>

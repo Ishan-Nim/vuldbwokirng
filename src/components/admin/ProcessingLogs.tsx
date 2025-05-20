@@ -2,9 +2,10 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Clock, RefreshCw, ExternalLink } from 'lucide-react';
+import { Clock, RefreshCw, ExternalLink, Copy, CheckCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 
 export interface LogEntry {
   timestamp: string;
@@ -40,6 +41,7 @@ const ProcessingLogs: React.FC<ProcessingLogsProps> = ({
 }) => {
   const [localLogs, setLocalLogs] = useState<LogEntry[]>(logs);
   const [localBlogLinks, setLocalBlogLinks] = useState<BlogLink[]>(blogLinks);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
   const navigate = useNavigate();
   
   // Update local logs when props change
@@ -81,6 +83,17 @@ const ProcessingLogs: React.FC<ProcessingLogsProps> = ({
     navigate(`/blog/${blogId}`);
   };
   
+  const copyBlogUrl = (blogId: string) => {
+    const blogUrl = `${window.location.origin}/blog/${blogId}`;
+    navigator.clipboard.writeText(blogUrl);
+    setCopiedId(blogId);
+    toast.success('Blog URL copied to clipboard');
+    
+    setTimeout(() => {
+      setCopiedId(null);
+    }, 2000);
+  };
+
   return (
     <Card className="w-full">
       <CardHeader className="pb-3">
@@ -106,25 +119,40 @@ const ProcessingLogs: React.FC<ProcessingLogsProps> = ({
         </div>
       </CardHeader>
       <CardContent>
+        {/* Manually Generated Blog Posts Section - Always show if there are any */}
         {localBlogLinks.length > 0 && (
-          <div className="mb-4">
+          <div className="mb-6">
             <h3 className="text-sm font-medium mb-2">Generated Blog Posts</h3>
-            <div className="bg-blue-50 dark:bg-blue-950/30 rounded-md p-3 space-y-2">
+            <div className="bg-blue-50 dark:bg-blue-950/30 rounded-md p-3 space-y-2 border-2 border-blue-200 dark:border-blue-800">
               {localBlogLinks.map((link) => (
                 <div key={link.id} className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-2 last:border-0 last:pb-0">
                   <div className="flex flex-col">
                     <span className="font-medium text-sm">{link.title}</span>
                     <span className="text-xs text-muted-foreground">{link.timestamp}</span>
                   </div>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    onClick={() => handleVisitBlog(link.id)}
-                    className="flex items-center gap-1"
-                  >
-                    <ExternalLink className="h-3.5 w-3.5" />
-                    <span className="text-xs">View</span>
-                  </Button>
+                  <div className="flex items-center space-x-2">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => copyBlogUrl(link.id)}
+                      className="flex items-center gap-1 h-8"
+                    >
+                      {copiedId === link.id ? (
+                        <><CheckCheck className="h-3.5 w-3.5" /> Copied</>
+                      ) : (
+                        <><Copy className="h-3.5 w-3.5" /> Copy</>
+                      )}
+                    </Button>
+                    <Button 
+                      variant="default" 
+                      size="sm" 
+                      onClick={() => handleVisitBlog(link.id)}
+                      className="flex items-center gap-1 h-8"
+                    >
+                      <ExternalLink className="h-3.5 w-3.5" />
+                      <span>View</span>
+                    </Button>
+                  </div>
                 </div>
               ))}
             </div>
