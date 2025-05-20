@@ -115,30 +115,37 @@ const GenJapaneseBlogFunction: React.FC = () => {
             </div>
           )}
 
-          {/* Display generated blog link */}
+          {/* Display generated blog link - HIGHLIGHTED AND MORE PROMINENT NOW */}
           {generatedBlogId && (
-            <div className="border rounded-md p-3 bg-muted/30">
-              <label className="text-sm font-medium block mb-2">Generated Blog URL</label>
-              <div className="flex items-center space-x-2">
-                <Input 
-                  readOnly
-                  value={`${window.location.origin}/blog/${generatedBlogId}`}
-                  className="text-xs font-mono bg-background"
-                />
-                <Button 
-                  size="sm" 
-                  variant="outline"
-                  onClick={copyToClipboard}
-                >
-                  {copied ? <CheckCheck className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                </Button>
-                <Button 
-                  size="sm" 
-                  variant="outline"
-                  onClick={visitBlog}
-                >
-                  <ExternalLink className="h-4 w-4" />
-                </Button>
+            <div className="border rounded-md p-4 bg-blue-50 dark:bg-blue-950/30">
+              <label className="text-sm font-medium block mb-2 text-blue-700 dark:text-blue-300">Generated Blog URL</label>
+              <div className="flex flex-col sm:flex-row gap-2">
+                <div className="flex-1">
+                  <Input 
+                    readOnly
+                    value={`${window.location.origin}/blog/${generatedBlogId}`}
+                    className="text-xs font-mono bg-background"
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <Button 
+                    variant="outline"
+                    onClick={copyToClipboard}
+                    className="w-full sm:w-auto"
+                  >
+                    {copied ? (
+                      <><CheckCheck className="h-4 w-4 mr-2" /> Copied</>
+                    ) : (
+                      <><Copy className="h-4 w-4 mr-2" /> Copy Link</>
+                    )}
+                  </Button>
+                  <Button 
+                    onClick={visitBlog}
+                    className="w-full sm:w-auto"
+                  >
+                    <ExternalLink className="h-4 w-4 mr-2" /> View Post
+                  </Button>
+                </div>
               </div>
             </div>
           )}
