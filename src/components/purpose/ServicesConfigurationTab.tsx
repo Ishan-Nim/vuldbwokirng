@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -165,10 +166,10 @@ const ServicesConfigurationTab = ({
   });
   
   const toggleService = (service: ServiceType) => {
-    setSelectedServices(prev => ({
-      ...prev,
-      [service]: !prev[service]
-    }));
+    setSelectedServices({
+      ...selectedServices,
+      [service]: !selectedServices[service]
+    });
 
     // If service is being enabled, set it as active form and initialize config
     if (!selectedServices[service]) {
@@ -194,10 +195,10 @@ const ServicesConfigurationTab = ({
               responsiveDesign: '',
               price: 150,
             };
-            setServiceConfig(prev => ({
-              ...prev,
+            setServiceConfig({
+              ...serviceConfig,
               web: webConfig
-            }));
+            });
             break;
           case 'cloud':
             const cloudConfig: CloudServiceConfig = {
@@ -217,10 +218,10 @@ const ServicesConfigurationTab = ({
               costEstimation: '',
               price: 300,
             };
-            setServiceConfig(prev => ({
-              ...prev,
+            setServiceConfig({
+              ...serviceConfig,
               cloud: cloudConfig
-            }));
+            });
             break;
           case 'network':
             const networkConfig: NetworkServiceConfig = {
@@ -240,10 +241,10 @@ const ServicesConfigurationTab = ({
               thirdPartyConnectivity: '',
               price: 250,
             };
-            setServiceConfig(prev => ({
-              ...prev,
+            setServiceConfig({
+              ...serviceConfig,
               network: networkConfig
-            }));
+            });
             break;
           case 'mobile':
             const mobileConfig: MobileServiceConfig = {
@@ -264,10 +265,10 @@ const ServicesConfigurationTab = ({
               securityRequirements: '',
               price: 200,
             };
-            setServiceConfig(prev => ({
-              ...prev,
+            setServiceConfig({
+              ...serviceConfig,
               mobile: mobileConfig
-            }));
+            });
             break;
         }
       }
@@ -283,28 +284,28 @@ const ServicesConfigurationTab = ({
     // Use a type guard approach to safely update the specific service config
     switch (activeServiceForm) {
       case 'web':
-        setServiceConfig(prev => ({
-          ...prev,
-          web: { ...(config as WebServiceConfig), price: prev.web?.price || 150 }
-        }));
+        setServiceConfig({
+          ...serviceConfig,
+          web: { ...(config as WebServiceConfig), price: serviceConfig.web?.price || 150 }
+        });
         break;
       case 'cloud':
-        setServiceConfig(prev => ({
-          ...prev,
-          cloud: { ...(config as CloudServiceConfig), price: prev.cloud?.price || 300 }
-        }));
+        setServiceConfig({
+          ...serviceConfig,
+          cloud: { ...(config as CloudServiceConfig), price: serviceConfig.cloud?.price || 300 }
+        });
         break;
       case 'network':
-        setServiceConfig(prev => ({
-          ...prev,
-          network: { ...(config as NetworkServiceConfig), price: prev.network?.price || 250 }
-        }));
+        setServiceConfig({
+          ...serviceConfig,
+          network: { ...(config as NetworkServiceConfig), price: serviceConfig.network?.price || 250 }
+        });
         break;
       case 'mobile':
-        setServiceConfig(prev => ({
-          ...prev,
-          mobile: { ...(config as MobileServiceConfig), price: prev.mobile?.price || 200 }
-        }));
+        setServiceConfig({
+          ...serviceConfig,
+          mobile: { ...(config as MobileServiceConfig), price: serviceConfig.mobile?.price || 200 }
+        });
         break;
     }
   };
