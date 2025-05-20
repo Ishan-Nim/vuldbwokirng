@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -29,13 +28,52 @@ interface LogEntry {
   type: 'info' | 'success' | 'warning' | 'error';
 }
 
+interface BlogLink {
+  id: string;
+  title: string;
+  timestamp: string;
+}
+
 const Admin = () => {
   const [activeTab, setActiveTab] = useState('stats');
   const [statsLogs, setStatsLogs] = useState<LogEntry[]>([]);
   const [actionLogs, setActionLogs] = useState<LogEntry[]>([]);
   const [generatorLogs, setGeneratorLogs] = useState<LogEntry[]>([]);
   const [rssFetchCount, setRssFetchCount] = useState<number>(0);
+  const [generatedBlogs, setGeneratedBlogs] = useState<BlogLink[]>([]);
 
+  // New function to fetch manually generated blog posts
+  const fetchManuallyGeneratedBlogs = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('vulnerabilities')
+        .select('id, title, created_at')
+        .not('title', 'ilike', 'CVE-%')
+        .order('created_at', { ascending: false })
+        .limit(10);
+      
+      if (error) throw error;
+      
+      if (data) {
+        const blogLinks: BlogLink[] = data.map(item => ({
+          id: item.id,
+          title: item.title,
+          timestamp: new Date(item.created_at).toLocaleString()
+        }));
+        setGeneratedBlogs(blogLinks);
+        
+        updateLogs('generators', [{
+          timestamp: new Date().toLocaleTimeString(),
+          message: `手動作成されたブログ記事を読み込みました: ${blogLinks.length}`,
+          type: 'info'
+        }]);
+      }
+    } catch (err) {
+      console.error('Error fetching manual blogs:', err);
+    }
+  };
+
+  // Update local logs when props change
   const updateLogs = (tabName: string, newLogs: LogEntry[]) => {
     if (tabName === 'stats') {
       setStatsLogs(prev => [...newLogs, ...prev].slice(0, 50)); // Limit to 50 logs
@@ -158,6 +196,13 @@ const Admin = () => {
   const fetchTask = findTaskSchedule('fetch-cve');
   const enrichTask = findTaskSchedule('enrich-cve');
   const blogGenTask = findTaskSchedule('generate-blogs');
+
+  // Fetch manually generated blogs when generators tab is activated
+  useEffect(() => {
+    if (activeTab === 'generators') {
+      fetchManuallyGeneratedBlogs();
+    }
+  }, [activeTab]);
 
   // Add new log entry when pending enrichment count changes
   useEffect(() => {
@@ -352,7 +397,14 @@ const Admin = () => {
             />
           </div>
           
-          <JapaneseBlogGenerator />
+          {/* Manually generated blog posts component */}
+          <ProcessingLogs 
+            title="Manually Generated Blog Posts" 
+            description="Your Japanese blog posts ready to view or share"
+            blogLinks={generatedBlogs}
+          />
+          
+          <GenJapaneseBlogFunction />
           
           {/* Processing Logs for Generators tab */}
           <ProcessingLogs 
