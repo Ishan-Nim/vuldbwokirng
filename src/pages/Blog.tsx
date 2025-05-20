@@ -240,15 +240,15 @@ const Blog = () => {
           <CardHeader>
             <CardTitle className="flex items-center">
               <AlertCircle className="text-destructive mr-2 h-5 w-5" />
-              Error
+              エラー
             </CardTitle>
             <CardDescription>
-              {error || "Blog post not found."}
+              {error || "ブログが見つかりません。"}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <Button onClick={handleBack} variant="outline" size="sm" className="mt-4">
-              <ArrowLeft className="mr-2 h-4 w-4" /> Back to Blog List
+              <ArrowLeft className="mr-2 h-4 w-4" /> ブログ一覧に戻る
             </Button>
           </CardContent>
         </Card>
@@ -262,7 +262,7 @@ const Blog = () => {
     <div className="container mx-auto px-4 py-6 max-w-6xl">
       <div className="space-y-6">
         <Button onClick={handleBack} variant="outline" size="sm">
-          <ArrowLeft className="mr-2 h-4 w-4" /> Back to Blog List
+          <ArrowLeft className="mr-2 h-4 w-4" /> ブログ一覧に戻る
         </Button>
 
         <div>
@@ -282,18 +282,18 @@ const Blog = () => {
 
         <Tabs defaultValue="overview">
           <TabsList className="grid w-full grid-cols-5">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="technical">Technical Details</TabsTrigger>
-            <TabsTrigger value="exploit">Example Exploits</TabsTrigger>
-            <TabsTrigger value="remediation">Remediation</TabsTrigger>
-            <TabsTrigger value="resources">Resources</TabsTrigger>
+            <TabsTrigger value="overview">概要</TabsTrigger>
+            <TabsTrigger value="technical">技術詳細</TabsTrigger>
+            <TabsTrigger value="exploit">攻撃例</TabsTrigger>
+            <TabsTrigger value="remediation">対策</TabsTrigger>
+            <TabsTrigger value="resources">参考資料</TabsTrigger>
           </TabsList>
 
           {/* Overview Tab */}
           <TabsContent value="overview" className="space-y-4 mt-4">
             <Card>
               <CardHeader>
-                <CardTitle>Vulnerability Description</CardTitle>
+                <CardTitle>脆弱性の説明</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="whitespace-pre-wrap">{vulnerability.description}</p>
@@ -302,15 +302,15 @@ const Blog = () => {
 
             <Card>
               <CardHeader>
-                <CardTitle>Impact</CardTitle>
+                <CardTitle>影響</CardTitle>
               </CardHeader>
               <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <h3 className="text-lg font-medium mb-2">Technical Impact</h3>
+                  <h3 className="text-lg font-medium mb-2">技術的影響</h3>
                   <p>{vulnerability.technical_impact}</p>
                 </div>
                 <div>
-                  <h3 className="text-lg font-medium mb-2">Business Impact</h3>
+                  <h3 className="text-lg font-medium mb-2">ビジネス影響</h3>
                   <p>{vulnerability.business_impact}</p>
                 </div>
               </CardContent>
@@ -322,7 +322,7 @@ const Blog = () => {
             {threatModeling && (
               <Card>
                 <CardHeader>
-                  <CardTitle>Threat Modeling</CardTitle>
+                  <CardTitle>脅威モデリング</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -380,11 +380,11 @@ const Blog = () => {
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <Code className="mr-2 h-5 w-5 text-destructive" />
-                  Example Exploits & Payloads
+                  攻撃例とペイロード
                 </CardTitle>
                 <CardDescription>
-                  These examples demonstrate how this vulnerability might be exploited.
-                  <strong className="block mt-1 text-destructive">For educational purposes only. Do not use against systems without authorization.</strong>
+                  これらの例は、この脆弱性がどのように悪用される可能性があるかを示しています。
+                  <strong className="block mt-1 text-destructive">教育目的のみ。許可なくシステムに対して使用しないでください。</strong>
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -415,9 +415,9 @@ const Blog = () => {
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <CheckCircle className="mr-2 h-5 w-5 text-green-500" />
-                  Recommended Measures
+                  推奨対策
                 </CardTitle>
-                <CardDescription>Recommendations to fix this vulnerability</CardDescription>
+                <CardDescription>この脆弱性を修正するための推奨事項</CardDescription>
               </CardHeader>
               <CardContent>
                 {remediations.length === 0 ? (
@@ -461,9 +461,9 @@ const Blog = () => {
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <BookOpen className="mr-2 h-5 w-5" />
-                  References and Resources
+                  参考資料とリソース
                 </CardTitle>
-                <CardDescription>Links to additional information about this vulnerability</CardDescription>
+                <CardDescription>この脆弱性に関する追加情報へのリンク</CardDescription>
               </CardHeader>
               <CardContent>
                 {references.length === 0 ? (
