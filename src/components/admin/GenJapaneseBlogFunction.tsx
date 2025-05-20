@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Copy, CheckCheck, ExternalLink } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from 'react-router-dom';
@@ -13,6 +13,8 @@ const GenJapaneseBlogFunction: React.FC = () => {
   const [title, setTitle] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [generationLog, setGenerationLog] = useState('');
+  const [generatedBlogId, setGeneratedBlogId] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
   const navigate = useNavigate();
 
   const handleGenerate = async () => {
@@ -23,6 +25,7 @@ const GenJapaneseBlogFunction: React.FC = () => {
 
     setIsGenerating(true);
     setGenerationLog('Requesting Japanese blog generation from OpenAI...\n');
+    setGeneratedBlogId(null);
     
     try {
       // Call the Supabase Edge Function
@@ -48,10 +51,8 @@ const GenJapaneseBlogFunction: React.FC = () => {
           setTimeout(() => {
             setGenerationLog(prev => prev + `Blog post generation complete! ID: ${data.vulnerabilityId}\n`);
             setIsGenerating(false);
+            setGeneratedBlogId(data.vulnerabilityId);
             toast.success('Japanese blog post successfully generated');
-            
-            // Navigate to the blog detail page
-            navigate(`/blog/${data.vulnerabilityId}`);
           }, 1000);
         }, 1000);
       }, 1000);
@@ -60,6 +61,23 @@ const GenJapaneseBlogFunction: React.FC = () => {
       setGenerationLog(prev => prev + `Error occurred: ${err.message || 'Unknown error'}\n`);
       setIsGenerating(false);
       toast.error('Failed to generate blog post: ' + (err.message || 'Unknown error'));
+    }
+  };
+
+  const copyToClipboard = () => {
+    if (!generatedBlogId) return;
+    
+    const blogUrl = `${window.location.origin}/blog/${generatedBlogId}`;
+    navigator.clipboard.writeText(blogUrl);
+    setCopied(true);
+    toast.success('Blog URL copied to clipboard');
+    
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const visitBlog = () => {
+    if (generatedBlogId) {
+      navigate(`/blog/${generatedBlogId}`);
     }
   };
 
@@ -94,6 +112,34 @@ const GenJapaneseBlogFunction: React.FC = () => {
                 readOnly 
                 className="h-40 font-mono text-xs bg-muted"
               />
+            </div>
+          )}
+
+          {/* Display generated blog link */}
+          {generatedBlogId && (
+            <div className="border rounded-md p-3 bg-muted/30">
+              <label className="text-sm font-medium block mb-2">Generated Blog URL</label>
+              <div className="flex items-center space-x-2">
+                <Input 
+                  readOnly
+                  value={`${window.location.origin}/blog/${generatedBlogId}`}
+                  className="text-xs font-mono bg-background"
+                />
+                <Button 
+                  size="sm" 
+                  variant="outline"
+                  onClick={copyToClipboard}
+                >
+                  {copied ? <CheckCheck className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                </Button>
+                <Button 
+                  size="sm" 
+                  variant="outline"
+                  onClick={visitBlog}
+                >
+                  <ExternalLink className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
           )}
         </div>

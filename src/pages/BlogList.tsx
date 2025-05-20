@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import VulnerabilityCard from '@/components/vulnerabilities/VulnerabilityCard';
@@ -16,23 +16,34 @@ import { supabase } from '@/integrations/supabase/client';
 import BlogCardSkeleton from '@/components/blog/BlogCardSkeleton';
 import { Button } from '@/components/ui/button';
 import { RefreshCw } from 'lucide-react';
+import SearchBar from '@/components/blog/SearchBar';
 
 const BlogList: React.FC = () => {
   const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState(1);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [activeSearchQuery, setActiveSearchQuery] = useState('');
   const pageSize = 20;
 
   const { data: blogs, isLoading, refetch } = useQuery({
-    queryKey: ['blogs', currentPage, pageSize],
+    queryKey: ['blogs', currentPage, pageSize, activeSearchQuery],
     queryFn: async () => {
       const startIndex = (currentPage - 1) * pageSize;
       
-      // Get only AI-generated blogs (not CVE entries), filtered by not having CVE in the title
-      const { data, error, count } = await supabase
+      // Start with the base query
+      let query = supabase
         .from('vulnerabilities')
         .select('*', { count: 'exact' })
         .not('title', 'ilike', 'CVE-%') 
-        .not('severity', 'is', null)
+        .not('severity', 'is', null);
+        
+      // Add search filter if search query exists
+      if (activeSearchQuery) {
+        query = query.or(`title.ilike.%${activeSearchQuery}%,description.ilike.%${activeSearchQuery}%`);
+      }
+      
+      // Add pagination and execute query
+      const { data, error, count } = await query
         .order('created_at', { ascending: false })
         .range(startIndex, startIndex + pageSize - 1);
         
@@ -49,6 +60,11 @@ const BlogList: React.FC = () => {
   
   const handleRefresh = () => {
     refetch();
+  };
+  
+  const handleSearch = () => {
+    setCurrentPage(1); // Reset to first page when searching
+    setActiveSearchQuery(searchQuery);
   };
 
   // Generate page numbers for pagination
@@ -92,13 +108,40 @@ const BlogList: React.FC = () => {
 
   return (
     <div className="container mx-auto p-4 min-h-screen">
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
         <h1 className="text-3xl font-bold">Security Blog</h1>
-        <Button variant="outline" size="sm" onClick={handleRefresh} className="flex items-center gap-1">
-          <RefreshCw className="h-4 w-4" />
-          Refresh
-        </Button>
+        
+        <div className="flex flex-col sm:flex-row w-full md:w-auto space-y-2 sm:space-y-0 sm:space-x-2">
+          <SearchBar
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+            onSearch={handleSearch}
+          />
+          <Button variant="outline" size="sm" onClick={handleRefresh} className="flex items-center gap-1">
+            <RefreshCw className="h-4 w-4" />
+            Refresh
+          </Button>
+        </div>
       </div>
+      
+      {activeSearchQuery && (
+        <div className="mb-4">
+          <p className="text-sm text-muted-foreground">
+            Search results for: <span className="font-medium">{activeSearchQuery}</span>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="ml-2 h-6 px-2"
+              onClick={() => {
+                setSearchQuery('');
+                setActiveSearchQuery('');
+              }}
+            >
+              Clear
+            </Button>
+          </p>
+        </div>
+      )}
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {isLoading ? (
@@ -123,10 +166,28 @@ const BlogList: React.FC = () => {
         ) : (
           <div className="col-span-full text-center py-16 border rounded-lg bg-muted/30">
             <p className="text-xl font-medium text-muted-foreground mb-4">No blog posts found</p>
-            <p className="text-muted-foreground mb-6">The database has been cleared or no blog posts have been created yet.</p>
-            <Button variant="outline" size="sm" onClick={() => navigate('/admin')} className="mx-auto">
-              Go to Admin
-            </Button>
+            <p className="text-muted-foreground mb-6">
+              {activeSearchQuery 
+                ? "No results match your search criteria." 
+                : "The database has been cleared or no blog posts have been created yet."}
+            </p>
+            <div className="flex justify-center space-x-4">
+              {activeSearchQuery && (
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => {
+                    setSearchQuery('');
+                    setActiveSearchQuery('');
+                  }}
+                >
+                  Clear Search
+                </Button>
+              )}
+              <Button variant="outline" size="sm" onClick={() => navigate('/admin')}>
+                Go to Admin
+              </Button>
+            </div>
           </div>
         )}
       </div>
