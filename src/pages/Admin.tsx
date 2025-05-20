@@ -11,6 +11,7 @@ import { format, parseISO } from 'date-fns';
 import { Clock, RefreshCw, FileText, ArrowDownUp, AlertCircle, Database } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import SitemapUpdateCard from '@/components/admin/SitemapUpdateCard';
+import SitemapViewer from '@/components/admin/SitemapViewer';
 
 // Define type for scheduled tasks
 interface ScheduledTask {
@@ -224,10 +225,11 @@ const Admin = () => {
       <h1 className="text-3xl font-bold mb-6">Admin Dashboard</h1>
       
       <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="stats">Statistics</TabsTrigger>
           <TabsTrigger value="actions">Actions</TabsTrigger>
           <TabsTrigger value="generators">Generators</TabsTrigger>
+          <TabsTrigger value="sitemap">Sitemap</TabsTrigger>
         </TabsList>
         
         <TabsContent value="stats" className="space-y-4">
@@ -413,6 +415,21 @@ const Admin = () => {
             logs={generatorLogs}
             autoRefresh={true}
           />
+        </TabsContent>
+        
+        <TabsContent value="sitemap" className="space-y-4">
+          <div className="grid gap-4 grid-cols-1">
+            <SitemapViewer />
+            <SitemapUpdateCard
+              onLogUpdate={(logs) => updateLogs('actions', logs)}
+            />
+            <ProcessingLogs 
+              title="Processing Logs" 
+              description="Sitemap operations log"
+              logs={actionLogs}
+              autoRefresh={true}
+            />
+          </div>
         </TabsContent>
       </Tabs>
     </div>

@@ -11,8 +11,32 @@ import BlogList from "./pages/BlogList";
 import Blog from "./pages/Blog";
 import Purpose from "./pages/Purpose";
 import NotFound from "./pages/NotFound";
+import { useEffect } from "react";
+import { supabase } from "./integrations/supabase/client";
 
 const queryClient = new QueryClient();
+
+// Sitemap route handler component
+const SitemapXML = () => {
+  useEffect(() => {
+    const fetchSitemap = async () => {
+      try {
+        // Invoke the generate-sitemap function
+        await supabase.functions.invoke('generate-sitemap');
+        
+        // Redirect to the correct URL
+        window.location.href = `https://ehow-vulnerability.com/sitemap.xml`;
+      } catch (error) {
+        console.error("Error fetching sitemap:", error);
+        document.body.innerHTML = '<h1>Error loading sitemap</h1>';
+      }
+    };
+    
+    fetchSitemap();
+  }, []);
+  
+  return null;
+};
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -26,6 +50,7 @@ const App = () => (
           <Route path="/blog" element={<MainLayout><BlogList /></MainLayout>} />
           <Route path="/blog/:id" element={<MainLayout><Blog /></MainLayout>} />
           <Route path="/purpose" element={<MainLayout><Purpose /></MainLayout>} />
+          <Route path="/sitemap.xml" element={<SitemapXML />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<MainLayout><NotFound /></MainLayout>} />
         </Routes>
