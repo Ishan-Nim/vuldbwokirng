@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Database, Shield, BookOpen } from 'lucide-react';
+import { Database, Shield, BookOpen, Target } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface MainLayoutProps {
@@ -15,6 +15,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
   const navLinks = [
     { name: 'Vulnerability Database', path: '/', icon: <Database className="h-5 w-5" /> },
     { name: 'Security Blog', path: '/blog', icon: <BookOpen className="h-5 w-5" /> },
+    { name: 'CyberSim Quotation', path: '/purpose', icon: <Target className="h-5 w-5" /> },
   ];
 
   return (

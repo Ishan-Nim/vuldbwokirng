@@ -187,13 +187,74 @@ const Purpose = () => {
     
     setIsLoading(true);
     try {
-      // In a real app, this would call a Supabase Edge Function to use ChatGPT API
-      // For demo purposes, we'll simulate the response with a timeout
-      setTimeout(() => {
-        const isJapaneseListed = data.companyName.toLowerCase().includes('sony') || 
-                                data.companyName.toLowerCase().includes('toyota') ||
-                                data.companyName.toLowerCase().includes('nintendo');
+      // Call OpenAI to generate company profile
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + import.meta.env.VITE_OPENAI_API_KEY
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o-mini',
+          messages: [
+            { 
+              role: 'system', 
+              content: 'You are an AI assistant specialized in company intelligence. Generate a detailed profile for the given company with these exact fields: name, website, headOffice, employeeCount, mainBusiness (array), established, capital, revenue, dataBreaches (array), isListed, stockPrice, country, isJapaneseListed. Format as JSON.' 
+            },
+            { 
+              role: 'user', 
+              content: `Generate a company profile for: ${data.companyName}` 
+            }
+          ],
+          temperature: 0.7
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch company data');
+      }
+      
+      const result = await response.json();
+      
+      try {
+        // Parse the OpenAI response to extract the company profile
+        const content = result.choices[0].message.content;
+        // Try to extract JSON from the content if it's not already JSON
+        const jsonMatch = content.match(/```json\n([\s\S]*)\n```/) || content.match(/({[\s\S]*})/);
+        const profileData = jsonMatch ? JSON.parse(jsonMatch[1]) : JSON.parse(content);
         
+        // Use the parsed data or fall back to generated mock data
+        const mockProfile: CompanyProfile = {
+          name: profileData.name || data.companyName,
+          website: profileData.website || `${data.companyName.toLowerCase().replace(/\s+/g, '')}.com`,
+          headOffice: profileData.headOffice || 'Unknown',
+          employeeCount: profileData.employeeCount || Math.floor(Math.random() * 10000),
+          mainBusiness: profileData.mainBusiness || ['Technology'],
+          established: profileData.established || Math.floor(Math.random() * 30 + 1980).toString(),
+          capital: profileData.capital || 'Unknown',
+          revenue: profileData.revenue || 'Unknown',
+          dataBreaches: profileData.dataBreaches || [],
+          isListed: profileData.isListed || false,
+          stockPrice: profileData.stockPrice || 'N/A',
+          country: profileData.country || 'Unknown',
+          isJapaneseListed: profileData.isJapaneseListed || false
+        };
+        
+        setCompanyProfile(mockProfile);
+        toast({
+          title: "Company Profile Generated",
+          description: `Successfully retrieved information about ${mockProfile.name}`,
+        });
+        
+        // Move to services tab after profile is generated
+        setActiveTab('services');
+      } catch (parseError) {
+        console.error("Error parsing OpenAI response:", parseError);
+        // Fallback to mock data on parsing error
+        const isJapaneseListed = data.companyName.toLowerCase().includes('sony') || 
+                              data.companyName.toLowerCase().includes('toyota') ||
+                              data.companyName.toLowerCase().includes('nintendo');
+      
         const mockProfile: CompanyProfile = {
           name: data.companyName,
           website: data.companyName.toLowerCase().replace(/\s+/g, '') + '.com',
@@ -215,21 +276,46 @@ const Purpose = () => {
         setCompanyProfile(mockProfile);
         toast({
           title: "Company Profile Generated",
-          description: `Successfully retrieved information about ${data.companyName}`,
+          description: `Successfully generated information about ${data.companyName}`,
         });
         
         // Move to services tab after profile is generated
         setActiveTab('services');
-        setIsLoading(false);
-      }, 1500);
-      
+      }
     } catch (error) {
       console.error('Error generating company profile:', error);
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Failed to generate company profile. Please try again.",
+        description: "Failed to generate company profile. Using simulated data.",
       });
+      
+      // Fallback to simulated data on API error
+      const isJapaneseListed = data.companyName.toLowerCase().includes('sony') || 
+                            data.companyName.toLowerCase().includes('toyota') ||
+                            data.companyName.toLowerCase().includes('nintendo');
+      
+      const mockProfile: CompanyProfile = {
+        name: data.companyName,
+        website: data.companyName.toLowerCase().replace(/\s+/g, '') + '.com',
+        headOffice: isJapaneseListed ? 'Tokyo, Japan' : 'Unknown',
+        employeeCount: isJapaneseListed ? Math.floor(Math.random() * 100000) + 10000 : Math.floor(Math.random() * 10000),
+        mainBusiness: isJapaneseListed 
+          ? ['Electronics', 'Entertainment', 'Financial Services'] 
+          : ['Technology'],
+        established: isJapaneseListed ? '1946' : Math.floor(Math.random() * 30 + 1980).toString(),
+        capital: isJapaneseListed ? '¥880.24 billion' : 'Unknown',
+        revenue: isJapaneseListed ? '¥11.54 trillion' : 'Unknown',
+        dataBreaches: [],
+        isListed: isJapaneseListed,
+        stockPrice: isJapaneseListed ? '¥14,000' : 'N/A',
+        country: isJapaneseListed ? 'Japan' : 'Unknown',
+        isJapaneseListed: isJapaneseListed,
+      };
+      
+      setCompanyProfile(mockProfile);
+      setActiveTab('services');
+    } finally {
       setIsLoading(false);
     }
   };
@@ -253,25 +339,25 @@ const Purpose = () => {
             defaultConfig = {
               type: 'Corporate Website',
               price: 150,
-            };
+            } as WebServiceConfig;
             break;
           case 'cloud':
             defaultConfig = {
               type: 'Mid-Level Infra',
               price: 300,
-            };
+            } as CloudServiceConfig;
             break;
           case 'network':
             defaultConfig = {
               type: 'Secure External Network',
               price: 250,
-            };
+            } as NetworkServiceConfig;
             break;
           case 'mobile':
             defaultConfig = {
               type: 'Mid-Level App',
               price: 200,
-            };
+            } as MobileServiceConfig;
             break;
         }
         
