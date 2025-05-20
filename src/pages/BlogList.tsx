@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import MainLayout from '@/components/layout/MainLayout';
@@ -7,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { ArrowRight, BookOpen, Loader2, AlertCircle } from 'lucide-react';
+import { ArrowRight, BookOpen, AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import BlogCardSkeleton from '@/components/blog/BlogCardSkeleton';
 import { toast } from '@/hooks/use-toast';
@@ -87,6 +86,11 @@ const BlogList = () => {
     }
   };
 
+  // Function to truncate description but keep it longer than before
+  const truncateDescription = (desc: string) => {
+    return desc.length > 300 ? desc.substring(0, 300) + '...' : desc;
+  };
+
   return (
     <MainLayout>
       <div className="space-y-6">
@@ -130,8 +134,8 @@ const BlogList = () => {
                   <CardTitle className="text-xl">{blog.title}</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <p className="text-muted-foreground line-clamp-4">
-                    {blog.description}
+                  <p className="text-muted-foreground line-clamp-6">
+                    {truncateDescription(blog.description)}
                   </p>
                   <Separator />
                   <div className="flex justify-between items-center">
