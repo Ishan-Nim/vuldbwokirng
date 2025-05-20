@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -22,8 +23,8 @@ interface ProcessingLogsProps {
 }
 
 const ProcessingLogs: React.FC<ProcessingLogsProps> = ({ 
-  title = "処理ログ", 
-  description = "データ処理操作のリアルタイムログ",
+  title = "Processing Logs", 
+  description = "Real-time logs of data processing operations",
   logs = [],
   autoRefresh = false,
   counter
@@ -79,7 +80,7 @@ const ProcessingLogs: React.FC<ProcessingLogsProps> = ({
               </div>
             )}
             <Button variant="outline" size="sm" onClick={clearLogs}>
-              クリア
+              Clear
             </Button>
           </div>
         </div>
@@ -88,7 +89,7 @@ const ProcessingLogs: React.FC<ProcessingLogsProps> = ({
         {localLogs.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">
             <RefreshCw className="mx-auto h-8 w-8 opacity-40" />
-            <p className="mt-2">ログはありません。操作を実行してログを生成してください。</p>
+            <p className="mt-2">No logs available. Execute operations to generate logs.</p>
           </div>
         ) : (
           <div className="bg-muted/50 p-4 rounded-md font-mono text-sm max-h-[300px] overflow-y-auto">

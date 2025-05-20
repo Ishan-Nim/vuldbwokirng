@@ -53,19 +53,19 @@ const AdminActionCard: React.FC<AdminActionCardProps> = ({
   const getButtonText = () => {
     if (buttonText) return buttonText;
     
-    if (functionName === 'fetch-cve-data') return 'RSSフェッチを実行';
-    if (functionName === 'enrich-cve-data') return '強化を開始';
-    if (functionName === 'scheduled-tasks' && task === 'fetch-cve') return 'タスクを実行';
-    if (functionName === 'scheduled-tasks' && task === 'generate-blogs') return 'ブログを生成';
-    return '実行';
+    if (functionName === 'fetch-cve-data') return 'Execute RSS Fetch';
+    if (functionName === 'enrich-cve-data') return 'Start Enhancement';
+    if (functionName === 'scheduled-tasks' && task === 'fetch-cve') return 'Execute Task';
+    if (functionName === 'scheduled-tasks' && task === 'generate-blogs') return 'Generate Blogs';
+    return 'Execute';
   };
   
   const formatScheduledTime = (timeString: string | null) => {
-    if (!timeString) return "予定なし";
+    if (!timeString) return "Not scheduled";
     try {
       return format(new Date(timeString), 'yyyy-MM-dd HH:mm:ss');
     } catch (error) {
-      return "無効な日付";
+      return "Invalid date";
     }
   };
 
@@ -91,41 +91,41 @@ const AdminActionCard: React.FC<AdminActionCardProps> = ({
     setIsLoading(true);
     
     try {
-      addLog(`開始: ${title} 操作...`);
+      addLog(`Starting: ${title} operation...`);
       
       let response;
       
       if (functionName === 'fetch-cve-data') {
-        addLog("RSSフィードのデータフェッチを開始...");
+        addLog("Starting RSS feed data fetch...");
         response = await supabase.functions.invoke('fetch-cve-data');
         
         if (response.data?.insertedCount && onSuccess) {
           onSuccess(response.data.insertedCount);
         }
       } else if (functionName === 'enrich-cve-data') {
-        addLog("データ強化処理を開始...");
+        addLog("Starting data enhancement process...");
         response = await supabase.functions.invoke('enrich-cve-data');
       } else if (functionName === 'scheduled-tasks') {
         // Call the scheduled-tasks function
-        addLog(`スケジュールされたタスクを実行: ${task}`);
+        addLog(`Executing scheduled task: ${task}`);
         response = await supabase.functions.invoke('scheduled-tasks', {
           body: { task }
         });
         
         if (task === 'generate-blogs' && response.data?.topics) {
-          addLog(`生成されたブログトピック: ${response.data.topics.length}`, 'success');
+          addLog(`Generated blog topics: ${response.data.topics.length}`, 'success');
           response.data.topics.forEach((topic: string, index: number) => {
             if (index < 5) {
-              addLog(`トピック ${index + 1}: ${topic}`);
+              addLog(`Topic ${index + 1}: ${topic}`);
             }
           });
           if (response.data.topics.length > 5) {
-            addLog(`... さらに ${response.data.topics.length - 5} 個のトピックがあります`);
+            addLog(`... and ${response.data.topics.length - 5} more topics`);
           }
         }
       } else {
         // Call the specific function
-        addLog(`関数を実行: ${functionName}`);
+        addLog(`Executing function: ${functionName}`);
         response = await supabase.functions.invoke(functionName);
       }
       
@@ -134,12 +134,12 @@ const AdminActionCard: React.FC<AdminActionCardProps> = ({
       }
       
       console.log(`${functionName} response:`, response.data);
-      addLog(`${title} が正常に完了しました`, 'success');
-      toast.success(`${title} が正常に完了しました`);
+      addLog(`${title} completed successfully`, 'success');
+      toast.success(`${title} completed successfully`);
     } catch (error) {
       console.error(`Error in ${functionName}:`, error);
-      addLog(`エラー: ${error.message || '不明なエラーが発生しました'}`, 'error');
-      toast.error(`エラー: ${error.message || '不明なエラーが発生しました'}`);
+      addLog(`Error: ${error.message || 'Unknown error occurred'}`, 'error');
+      toast.error(`Error: ${error.message || 'Unknown error occurred'}`);
     } finally {
       setIsLoading(false);
     }
@@ -158,7 +158,7 @@ const AdminActionCard: React.FC<AdminActionCardProps> = ({
         {nextScheduled && (
           <div className="mt-2 flex items-center text-xs text-muted-foreground">
             <Clock className="h-3 w-3 mr-1" />
-            <span>次回予定: {formatScheduledTime(nextScheduled)}</span>
+            <span>Next scheduled: {formatScheduledTime(nextScheduled)}</span>
           </div>
         )}
       </CardHeader>
@@ -172,7 +172,7 @@ const AdminActionCard: React.FC<AdminActionCardProps> = ({
           {isLoading ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              処理中...
+              Processing...
             </>
           ) : getButtonText()}
         </Button>

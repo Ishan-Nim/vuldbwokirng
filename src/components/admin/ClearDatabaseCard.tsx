@@ -14,8 +14,8 @@ interface ClearDatabaseCardProps {
 }
 
 const ClearDatabaseCard: React.FC<ClearDatabaseCardProps> = ({
-  title = "データベースクリア",
-  description = "すべてのデータをデータベースから削除します",
+  title = "Clear Database",
+  description = "Remove all data from the database",
   onLogUpdate
 }) => {
   const [isLoading, setIsLoading] = useState(false);
@@ -32,34 +32,34 @@ const ClearDatabaseCard: React.FC<ClearDatabaseCardProps> = ({
   const handleClearDatabase = async () => {
     if (!confirmDelete) {
       setConfirmDelete(true);
-      addLog("データベースをクリアするには、もう一度ボタンをクリックしてください。", "warning");
+      addLog("Click the button again to confirm database clearing.", "warning");
       return;
     }
     
     setIsLoading(true);
-    addLog("データベースのクリアを開始しています...", "info");
+    addLog("Starting database clearing process...", "info");
     
     try {
       // Clear all tables in the correct order to respect foreign key constraints
       await supabase.from('references').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-      addLog("参照テーブルをクリアしました", "info");
+      addLog("References table cleared", "info");
       
       await supabase.from('remediations').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-      addLog("対策テーブルをクリアしました", "info");
+      addLog("Remediations table cleared", "info");
       
       await supabase.from('threat_modeling').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-      addLog("脅威モデルテーブルをクリアしました", "info");
+      addLog("Threat modeling table cleared", "info");
       
       await supabase.from('vulnerabilities').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-      addLog("脆弱性テーブルをクリアしました", "info");
+      addLog("Vulnerabilities table cleared", "info");
       
-      toast.success("データベースが正常にクリアされました");
-      addLog("データベースが正常にクリアされました", "success");
+      toast.success("Database successfully cleared");
+      addLog("Database successfully cleared", "success");
       setConfirmDelete(false);
     } catch (error) {
       console.error('Error clearing database:', error);
-      addLog(`エラー: ${error.message || '不明なエラーが発生しました'}`, "error");
-      toast.error(`エラー: ${error.message || '不明なエラーが発生しました'}`);
+      addLog(`Error: ${error.message || 'Unknown error occurred'}`, "error");
+      toast.error(`Error: ${error.message || 'Unknown error occurred'}`);
     } finally {
       setIsLoading(false);
     }
@@ -81,8 +81,8 @@ const ClearDatabaseCard: React.FC<ClearDatabaseCardProps> = ({
           <div className="flex items-start">
             <AlertTriangle className="h-5 w-5 mr-2 mt-0.5 flex-shrink-0" />
             <p>
-              警告: この操作は元に戻すことができません。すべてのデータがデータベースから完全に削除されます。
-              新しい開発環境やテストを開始する場合にのみ使用してください。
+              Warning: This operation cannot be undone. All data will be permanently deleted from the database.
+              Use only when starting a new development environment or test.
             </p>
           </div>
         </div>
@@ -97,12 +97,12 @@ const ClearDatabaseCard: React.FC<ClearDatabaseCardProps> = ({
           {isLoading ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              処理中...
+              Processing...
             </>
           ) : confirmDelete ? (
-            '確認: データベースをクリア'
+            'Confirm: Clear Database'
           ) : (
-            'データベースをクリア'
+            'Clear Database'
           )}
         </Button>
       </CardFooter>
