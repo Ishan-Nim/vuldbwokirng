@@ -30,7 +30,13 @@ const GenJapaneseBlogFunction: React.FC = () => {
         body: { title: title.trim() }
       });
 
-      if (error) throw error;
+      if (error) {
+        throw new Error(`Error invoking function: ${error.message}`);
+      }
+
+      if (!data || !data.vulnerabilityId) {
+        throw new Error('Invalid response from server');
+      }
 
       setGenerationLog(prev => prev + 'Processing title and content...\n');
       setTimeout(() => {
@@ -49,11 +55,11 @@ const GenJapaneseBlogFunction: React.FC = () => {
           }, 1000);
         }, 1000);
       }, 1000);
-    } catch (err) {
+    } catch (err: any) {
       console.error("Error generating blog:", err);
       setGenerationLog(prev => prev + `Error occurred: ${err.message || 'Unknown error'}\n`);
       setIsGenerating(false);
-      toast.error('An error occurred while generating the blog post');
+      toast.error('Failed to generate blog post: ' + (err.message || 'Unknown error'));
     }
   };
 
