@@ -33,25 +33,25 @@ const QuoteSummaryTab = ({ companyProfile, serviceConfig, selectedServices }: Qu
   
   const downloadPdf = () => {
     toast({
-      title: "PDF Download Started",
-      description: "Your quote summary PDF is being generated and will download shortly.",
+      title: "PDF ダウンロード開始",
+      description: "見積書のPDFを生成中です。まもなくダウンロードが始まります。",
     });
   };
   
   const saveQuote = () => {
     toast({
-      title: "Quote Saved",
-      description: "Your quote has been saved to your account.",
+      title: "見積書保存完了",
+      description: "見積書がアカウントに保存されました。",
     });
   };
   
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Quotation Summary</CardTitle>
+        <CardTitle>見積書の概要</CardTitle>
         <CardDescription>
-          Estimated pricing for selected security services
-          {companyProfile?.isJapaneseListed && " (including +12% premium for Japanese listed company)"}
+          選択されたセキュリティサービスの見積価格
+          {companyProfile?.isJapaneseListed && " (日本の上場企業向け+12%プレミアム含む)"}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -60,15 +60,15 @@ const QuoteSummaryTab = ({ companyProfile, serviceConfig, selectedServices }: Qu
             <table className="min-w-full divide-y divide-gray-200">
               <thead>
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Service</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Base Price (万円)</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">サービス</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">種類</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">基本料金 (万円)</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
                 {selectedServices.web && serviceConfig.web && (
                   <tr>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">Web Security Testing</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">Webセキュリティテスト</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">{(serviceConfig.web as WebServiceConfig).type}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-right">{(serviceConfig.web as WebServiceConfig).price}</td>
                   </tr>
@@ -76,7 +76,7 @@ const QuoteSummaryTab = ({ companyProfile, serviceConfig, selectedServices }: Qu
                 
                 {selectedServices.cloud && serviceConfig.cloud && (
                   <tr>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">Cloud Assessment</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">クラウド評価</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">{(serviceConfig.cloud as CloudServiceConfig).type}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-right">{(serviceConfig.cloud as CloudServiceConfig).price}</td>
                   </tr>
@@ -84,7 +84,7 @@ const QuoteSummaryTab = ({ companyProfile, serviceConfig, selectedServices }: Qu
                 
                 {selectedServices.network && serviceConfig.network && (
                   <tr>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">Network Pentest</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">ネットワーク侵入テスト</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">{(serviceConfig.network as NetworkServiceConfig).type}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-right">{(serviceConfig.network as NetworkServiceConfig).price}</td>
                   </tr>
@@ -92,7 +92,7 @@ const QuoteSummaryTab = ({ companyProfile, serviceConfig, selectedServices }: Qu
                 
                 {selectedServices.mobile && serviceConfig.mobile && (
                   <tr>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">Mobile App Testing</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">モバイルアプリテスト</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">{(serviceConfig.mobile as MobileServiceConfig).type}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-right">{(serviceConfig.mobile as MobileServiceConfig).price}</td>
                   </tr>
@@ -100,7 +100,7 @@ const QuoteSummaryTab = ({ companyProfile, serviceConfig, selectedServices }: Qu
               </tbody>
               <tfoot>
                 <tr className="border-t-2 border-gray-300">
-                  <th className="px-6 py-4 text-left text-sm font-semibold" colSpan={2}>Subtotal</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold" colSpan={2}>小計</th>
                   <th className="px-6 py-4 text-right text-sm font-semibold">
                     {Object.entries(serviceConfig).reduce((acc, [service, config]) => {
                       if (selectedServices[service as ServiceType] && config) {
@@ -112,7 +112,7 @@ const QuoteSummaryTab = ({ companyProfile, serviceConfig, selectedServices }: Qu
                 </tr>
                 {companyProfile?.isJapaneseListed && (
                   <tr>
-                    <th className="px-6 py-4 text-left text-sm font-semibold" colSpan={2}>Japanese Listed Company Premium (+12%)</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold" colSpan={2}>日本の上場企業プレミアム (+12%)</th>
                     <th className="px-6 py-4 text-right text-sm font-semibold">
                       +{Math.round(Object.entries(serviceConfig).reduce((acc, [service, config]) => {
                         if (selectedServices[service as ServiceType] && config) {
@@ -124,7 +124,7 @@ const QuoteSummaryTab = ({ companyProfile, serviceConfig, selectedServices }: Qu
                   </tr>
                 )}
                 <tr className="bg-primary/5">
-                  <th className="px-6 py-4 text-left text-base font-bold" colSpan={2}>Total Estimate</th>
+                  <th className="px-6 py-4 text-left text-base font-bold" colSpan={2}>合計見積額</th>
                   <th className="px-6 py-4 text-right text-base font-bold">
                     {calculateTotal()} 万円
                   </th>
@@ -135,10 +135,10 @@ const QuoteSummaryTab = ({ companyProfile, serviceConfig, selectedServices }: Qu
           
           <div className="flex flex-wrap justify-end gap-4 mt-6">
             <Button variant="outline" onClick={saveQuote}>
-              Save Quote
+              見積書保存
             </Button>
             <Button onClick={downloadPdf}>
-              Download PDF
+              PDF ダウンロード
             </Button>
           </div>
         </div>
