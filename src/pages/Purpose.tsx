@@ -365,6 +365,7 @@ const Purpose = () => {
               compliance: [],
               autoscaling: false,
               cicdRequired: false,
+              cicdTools: '',
               serverless: false,
               containerization: false,
               disasterRecovery: false,
@@ -384,6 +385,7 @@ const Purpose = () => {
               ipCount: 10,
               vpnRequired: false,
               firewall: false,
+              firewallType: '',
               idsIps: false,
               segmentation: false,
               bandwidth: '',
@@ -436,16 +438,42 @@ const Purpose = () => {
     const formData = serviceForm.getValues();
 
     // Copy existing service config to keep prices
-    const updatedConfig = { ...serviceConfig };
+    const updatedConfig: ServiceConfig = { ...serviceConfig };
     
     // Update with form data for each selected service
     Object.keys(selectedServices).forEach((service) => {
       const serviceKey = service as ServiceType;
       if (selectedServices[serviceKey]) {
-        updatedConfig[serviceKey] = {
-          ...formData[serviceKey],
-          ...(updatedConfig[serviceKey] || {}),  // Keep existing price
-        };
+        switch(serviceKey) {
+          case 'web':
+            updatedConfig.web = {
+              ...(formData.web || {}),
+              ...(updatedConfig.web || {}),
+              price: updatedConfig.web?.price || 150,
+            } as WebServiceConfig;
+            break;
+          case 'cloud':
+            updatedConfig.cloud = {
+              ...(formData.cloud || {}),
+              ...(updatedConfig.cloud || {}),
+              price: updatedConfig.cloud?.price || 300,
+            } as CloudServiceConfig;
+            break;
+          case 'network':
+            updatedConfig.network = {
+              ...(formData.network || {}),
+              ...(updatedConfig.network || {}),
+              price: updatedConfig.network?.price || 250,
+            } as NetworkServiceConfig;
+            break;
+          case 'mobile':
+            updatedConfig.mobile = {
+              ...(formData.mobile || {}),
+              ...(updatedConfig.mobile || {}),
+              price: updatedConfig.mobile?.price || 200,
+            } as MobileServiceConfig;
+            break;
+        }
       }
     });
     
@@ -498,6 +526,37 @@ const Purpose = () => {
     });
   };
 
+  const handleServiceConfigChange = (config: WebServiceConfig | CloudServiceConfig | NetworkServiceConfig | MobileServiceConfig) => {
+    if (!activeServiceForm) return;
+    
+    setServiceConfig(prev => {
+      switch (activeServiceForm) {
+        case 'web':
+          return {
+            ...prev,
+            web: { ...config as WebServiceConfig, price: prev.web?.price || 150 }
+          };
+        case 'cloud':
+          return {
+            ...prev,
+            cloud: { ...config as CloudServiceConfig, price: prev.cloud?.price || 300 }
+          };
+        case 'network':
+          return {
+            ...prev,
+            network: { ...config as NetworkServiceConfig, price: prev.network?.price || 250 }
+          };
+        case 'mobile':
+          return {
+            ...prev,
+            mobile: { ...config as MobileServiceConfig, price: prev.mobile?.price || 200 }
+          };
+        default:
+          return prev;
+      }
+    });
+  };
+  
   const handleServiceDetailView = (serviceType: ServiceType) => {
     setActiveServiceForm(serviceType);
   };
@@ -692,15 +751,7 @@ const Purpose = () => {
                     {activeServiceForm && (
                       <ServiceFormSelector 
                         selectedService={activeServiceForm} 
-                        onChange={(newConfig) => {
-                          setServiceConfig(prev => ({
-                            ...prev,
-                            [activeServiceForm]: {
-                              ...prev[activeServiceForm],
-                              ...newConfig
-                            }
-                          }));
-                        }} 
+                        onChange={handleServiceConfigChange} 
                       />
                     )}
                     
