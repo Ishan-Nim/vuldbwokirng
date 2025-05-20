@@ -1,180 +1,146 @@
 
 import React, { useState } from 'react';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Loader2, Clock } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { format, parseISO } from 'date-fns';
+import { Clock, Play, Loader2 } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
-import { FileText, RefreshCw, ArrowDownUp } from 'lucide-react';
-import { format } from 'date-fns';
+import { cn } from '@/lib/utils';
 
 interface AdminActionCardProps {
   title: string;
   description: string;
-  buttonText?: string;
-  icon?: React.ReactNode;
-  isLoading?: boolean;
-  onClick?: () => void;
-  className?: string;
-  functionName?: string;
+  functionName: string;
   task?: string;
   nextScheduled?: string | null;
-  onLogUpdate?: (logs: Array<{timestamp: string, message: string, type: 'info' | 'success' | 'warning' | 'error'}>) => void;
+  onLogUpdate?: (logs: { timestamp: string; message: string; type: string }[]) => void;
   onSuccess?: (count?: number) => void;
+  highlightAction?: boolean;
 }
 
-const AdminActionCard: React.FC<AdminActionCardProps> = ({
-  title,
-  description,
-  buttonText,
-  icon,
-  isLoading: externalIsLoading,
-  onClick: externalOnClick,
-  className,
-  functionName,
-  task,
+const AdminActionCard = ({
+  title, 
+  description, 
+  functionName, 
+  task = null,
   nextScheduled,
   onLogUpdate,
-  onSuccess
-}) => {
-  const [isLoading, setIsLoading] = useState(externalIsLoading || false);
+  onSuccess,
+  highlightAction = false
+}: AdminActionCardProps) => {
+  const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
   
-  const getIcon = () => {
-    if (icon) return icon;
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return "Not scheduled";
     
-    // Default icons based on function type
-    if (functionName === 'fetch-cve-data') return <RefreshCw className="h-5 w-5" />;
-    if (functionName === 'enrich-cve-data') return <ArrowDownUp className="h-5 w-5" />;
-    if (functionName === 'scheduled-tasks') return <Clock className="h-5 w-5" />;
-    return <FileText className="h-5 w-5" />;
-  };
-  
-  const getButtonText = () => {
-    if (buttonText) return buttonText;
-    
-    if (functionName === 'fetch-cve-data') return 'Execute RSS Fetch';
-    if (functionName === 'enrich-cve-data') return 'Start Enhancement';
-    if (functionName === 'scheduled-tasks' && task === 'fetch-cve') return 'Execute Task';
-    if (functionName === 'scheduled-tasks' && task === 'generate-blogs') return 'Generate Blogs';
-    return 'Execute';
-  };
-  
-  const formatScheduledTime = (timeString: string | null) => {
-    if (!timeString) return "Not scheduled";
     try {
-      return format(new Date(timeString), 'yyyy-MM-dd HH:mm:ss');
+      return format(parseISO(dateString), 'yyyy-MM-dd HH:mm:ss');
     } catch (error) {
       return "Invalid date";
     }
   };
-
-  const addLog = (message: string, type: 'info' | 'success' | 'warning' | 'error' = 'info') => {
-    if (onLogUpdate) {
-      const now = new Date();
-      const timestamp = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`;
-      onLogUpdate([{timestamp, message, type}]);
-    }
-  };
   
-  const handleClick = async () => {
-    if (externalOnClick) {
-      externalOnClick();
-      return;
-    }
-    
-    if (!functionName) {
-      console.error('No function name provided');
-      return;
-    }
-    
+  const handleAction = async () => {
     setIsLoading(true);
     
     try {
-      addLog(`Starting: ${title} operation...`);
+      const requestBody = task ? { task } : {};
       
-      let response;
+      const { data, error } = await supabase.functions.invoke(functionName, {
+        body: requestBody
+      });
       
-      if (functionName === 'fetch-cve-data') {
-        addLog("Starting RSS feed data fetch...");
-        response = await supabase.functions.invoke('fetch-cve-data');
-        
-        if (response.data?.insertedCount && onSuccess) {
-          onSuccess(response.data.insertedCount);
-        }
-      } else if (functionName === 'enrich-cve-data') {
-        addLog("Starting data enhancement process...");
-        response = await supabase.functions.invoke('enrich-cve-data');
-      } else if (functionName === 'scheduled-tasks') {
-        // Call the scheduled-tasks function
-        addLog(`Executing scheduled task: ${task}`);
-        response = await supabase.functions.invoke('scheduled-tasks', {
-          body: { task }
-        });
-        
-        if (task === 'generate-blogs' && response.data?.topics) {
-          addLog(`Generated blog topics: ${response.data.topics.length}`, 'success');
-          response.data.topics.forEach((topic: string, index: number) => {
-            if (index < 5) {
-              addLog(`Topic ${index + 1}: ${topic}`);
-            }
-          });
-          if (response.data.topics.length > 5) {
-            addLog(`... and ${response.data.topics.length - 5} more topics`);
-          }
-        }
-      } else {
-        // Call the specific function
-        addLog(`Executing function: ${functionName}`);
-        response = await supabase.functions.invoke(functionName);
+      if (error) throw error;
+      
+      // Log the successful action
+      if (onLogUpdate) {
+        onLogUpdate([{
+          timestamp: new Date().toLocaleTimeString(),
+          message: `成功: ${title} - ${JSON.stringify(data?.message || 'アクションが完了しました')}`,
+          type: 'success'
+        }]);
       }
       
-      if (response.error) {
-        throw new Error(response.error.message);
+      // Additional processing for fetch functions
+      if (functionName === 'fetch-cve-data' && data?.count && onSuccess) {
+        onSuccess(data.count);
       }
       
-      console.log(`${functionName} response:`, response.data);
-      addLog(`${title} completed successfully`, 'success');
-      toast.success(`${title} completed successfully`);
-    } catch (error) {
-      console.error(`Error in ${functionName}:`, error);
-      addLog(`Error: ${error.message || 'Unknown error occurred'}`, 'error');
-      toast.error(`Error: ${error.message || 'Unknown error occurred'}`);
+      // Additional handling for scheduled tasks
+      if (functionName === 'scheduled-tasks' && onSuccess && data?.count) {
+        onSuccess(data.count);
+      }
+      
+      toast({
+        title: "操作成功",
+        description: data?.message || `${title}が正常に処理されました`,
+        variant: "default",
+      });
+    } catch (err) {
+      console.error(`Error executing ${functionName}:`, err);
+      
+      if (onLogUpdate) {
+        onLogUpdate([{
+          timestamp: new Date().toLocaleTimeString(),
+          message: `エラー: ${title} - ${err.message || 'アクションの実行に失敗しました'}`,
+          type: 'error'
+        }]);
+      }
+      
+      toast({
+        title: "エラーが発生しました",
+        description: err.message || `${title}の処理中にエラーが発生しました`,
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }
   };
   
   return (
-    <Card className={cn("h-full flex flex-col", className)}>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-lg">{title}</CardTitle>
-          <div className="h-10 w-10 bg-primary/10 rounded-full flex items-center justify-center text-primary">
-            {getIcon()}
-          </div>
+    <Card className={cn(
+      "flex flex-col relative", 
+      highlightAction && "border-severity-medium dark:border-severity-medium shadow-md"
+    )}>
+      {highlightAction && (
+        <div className="absolute -top-3 -right-2">
+          <span className="bg-severity-medium text-white text-xs px-2 py-1 rounded-full">New Schedule</span>
         </div>
+      )}
+      <CardHeader>
+        <CardTitle>{title}</CardTitle>
         <CardDescription>{description}</CardDescription>
+      </CardHeader>
+      <CardContent className="flex-grow">
         {nextScheduled && (
-          <div className="mt-2 flex items-center text-xs text-muted-foreground">
-            <Clock className="h-3 w-3 mr-1" />
-            <span>Next scheduled: {formatScheduledTime(nextScheduled)}</span>
+          <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
+            <Clock className="h-4 w-4" />
+            <span>Next scheduled: {formatDate(nextScheduled)}</span>
           </div>
         )}
-      </CardHeader>
-      <CardContent className="flex-1"></CardContent>
-      <CardFooter>
+      </CardContent>
+      <CardFooter className="pt-0">
         <Button 
-          className="w-full" 
-          onClick={handleClick}
+          onClick={handleAction} 
           disabled={isLoading}
+          className={cn(
+            "w-full", 
+            highlightAction ? "bg-severity-medium hover:bg-severity-medium/90" : ""
+          )}
         >
           {isLoading ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               Processing...
             </>
-          ) : getButtonText()}
+          ) : (
+            <>
+              <Play className="mr-2 h-4 w-4" />
+              Execute Now
+            </>
+          )}
         </Button>
       </CardFooter>
     </Card>

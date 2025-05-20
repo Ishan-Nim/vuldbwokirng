@@ -1,3 +1,4 @@
+
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.43.1";
@@ -159,6 +160,28 @@ serve(async (req) => {
         }
       );
     }
+    else if (task === "enrich-cve") {
+      // Call the enrich-cve-data function directly
+      const enrichResponse = await supabase.functions.invoke('enrich-cve-data');
+      
+      if (enrichResponse.error) {
+        throw new Error(`Error enriching CVE data: ${enrichResponse.error.message}`);
+      }
+      
+      // Update the schedule record
+      await updateScheduleRecord('enrich-cve', supabase);
+      
+      return new Response(
+        JSON.stringify({ 
+          success: true, 
+          message: "CVE enrichment process completed successfully",
+          result: enrichResponse.data
+        }),
+        { 
+          headers: { ...corsHeaders, "Content-Type": "application/json" } 
+        }
+      );
+    }
     else {
       throw new Error(`Unknown task type: ${task}`);
     }
@@ -218,8 +241,8 @@ async function updateScheduleRecord(taskType: string, supabase: any): Promise<vo
     nextRunTime = new Date(now.getTime() + (4.8 * 60 * 60 * 1000));
   } 
   else if (taskType === 'enrich-cve') {
-    // Schedule shortly after each fetch (10 minutes after fetch)
-    nextRunTime = new Date(now.getTime() + (10 * 60 * 1000));
+    // Schedule every 5 hours
+    nextRunTime = new Date(now.getTime() + (5 * 60 * 60 * 1000));
   }
   else if (taskType === 'generate-blogs') {
     // Schedule 20 blogs per day (spaced throughout day)

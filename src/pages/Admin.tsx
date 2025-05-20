@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -295,6 +296,10 @@ const Admin = () => {
                         <span className="text-sm text-muted-foreground">Last execution:</span>
                         <span className="text-sm">{enrichTask ? formatDate(enrichTask.last_run) : "Never executed"}</span>
                       </div>
+                      <div className="flex justify-between mt-1">
+                        <span className="text-sm text-muted-foreground">Schedule:</span>
+                        <span className="text-sm font-medium text-severity-medium">Every 5 hours</span>
+                      </div>
                     </div>
                   </div>
                   
@@ -350,12 +355,22 @@ const Admin = () => {
             />
             
             <AdminActionCard 
-              title="Execute Task" 
-              description="Run scheduled task"
+              title="Execute Fetch Task" 
+              description="Run scheduled CVE fetch task"
               functionName="scheduled-tasks"
               task="fetch-cve"
               nextScheduled={fetchTask?.next_run}
               onLogUpdate={(logs) => updateLogs('actions', logs)}
+            />
+            
+            <AdminActionCard 
+              title="Execute AI Enhancement" 
+              description="Run scheduled enhancement task (every 5 hours)"
+              functionName="scheduled-tasks"
+              task="enrich-cve"
+              nextScheduled={enrichTask?.next_run}
+              onLogUpdate={(logs) => updateLogs('actions', logs)}
+              highlightAction={true}
             />
             
             <AdminActionCard 
