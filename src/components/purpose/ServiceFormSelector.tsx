@@ -21,7 +21,7 @@ export const ServiceFormSelector = ({ selectedService, onChange }: ServiceFormSe
             <CardTitle className="text-lg">Web Security Testing Configuration</CardTitle>
           </CardHeader>
           <CardContent>
-            <WebServiceForm onChange={onChange} />
+            <WebServiceForm onChange={(config) => onChange(config)} />
           </CardContent>
         </Card>
       );
@@ -32,7 +32,7 @@ export const ServiceFormSelector = ({ selectedService, onChange }: ServiceFormSe
             <CardTitle className="text-lg">Cloud Assessment Configuration</CardTitle>
           </CardHeader>
           <CardContent>
-            <CloudServiceForm onChange={onChange} />
+            <CloudServiceForm onChange={(config) => onChange(config)} />
           </CardContent>
         </Card>
       );
@@ -43,7 +43,7 @@ export const ServiceFormSelector = ({ selectedService, onChange }: ServiceFormSe
             <CardTitle className="text-lg">Network Pentest Configuration</CardTitle>
           </CardHeader>
           <CardContent>
-            <NetworkServiceForm onChange={onChange} />
+            <NetworkServiceForm onChange={(config) => onChange(config)} />
           </CardContent>
         </Card>
       );
@@ -54,7 +54,7 @@ export const ServiceFormSelector = ({ selectedService, onChange }: ServiceFormSe
             <CardTitle className="text-lg">Mobile App Testing Configuration</CardTitle>
           </CardHeader>
           <CardContent>
-            <MobileServiceForm onChange={onChange} />
+            <MobileServiceForm onChange={(config) => onChange(config)} />
           </CardContent>
         </Card>
       );

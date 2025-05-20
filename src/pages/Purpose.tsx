@@ -529,32 +529,35 @@ const Purpose = () => {
   const handleServiceConfigChange = (config: WebServiceConfig | CloudServiceConfig | NetworkServiceConfig | MobileServiceConfig) => {
     if (!activeServiceForm) return;
     
-    setServiceConfig(prev => {
+    // Create a type guard to determine which type of config we're dealing with
+    const updateConfig = () => {
       switch (activeServiceForm) {
         case 'web':
           return {
-            ...prev,
-            web: { ...config as WebServiceConfig, price: prev.web?.price || 150 }
+            ...serviceConfig,
+            web: { ...config as WebServiceConfig, price: serviceConfig.web?.price || 150 }
           };
         case 'cloud':
           return {
-            ...prev,
-            cloud: { ...config as CloudServiceConfig, price: prev.cloud?.price || 300 }
+            ...serviceConfig,
+            cloud: { ...config as CloudServiceConfig, price: serviceConfig.cloud?.price || 300 }
           };
         case 'network':
           return {
-            ...prev,
-            network: { ...config as NetworkServiceConfig, price: prev.network?.price || 250 }
+            ...serviceConfig,
+            network: { ...config as NetworkServiceConfig, price: serviceConfig.network?.price || 250 }
           };
         case 'mobile':
           return {
-            ...prev,
-            mobile: { ...config as MobileServiceConfig, price: prev.mobile?.price || 200 }
+            ...serviceConfig,
+            mobile: { ...config as MobileServiceConfig, price: serviceConfig.mobile?.price || 200 }
           };
         default:
-          return prev;
+          return serviceConfig;
       }
-    });
+    };
+    
+    setServiceConfig(updateConfig());
   };
   
   const handleServiceDetailView = (serviceType: ServiceType) => {
