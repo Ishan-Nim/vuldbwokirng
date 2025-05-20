@@ -332,41 +332,98 @@ const Purpose = () => {
       
       // Initialize service config with default prices based on service type
       if (!serviceConfig[service]) {
-        let defaultConfig: WebServiceConfig | CloudServiceConfig | NetworkServiceConfig | MobileServiceConfig;
-        
         switch (service) {
           case 'web':
-            defaultConfig = {
+            const webConfig: WebServiceConfig = {
               type: 'Corporate Website',
+              pages: 5,
+              loginComplexity: 'Basic',
+              technologies: [],
+              hostingProvider: '',
+              cmsIntegration: false,
+              seoRequirements: false,
+              thirdPartyIntegrations: '',
+              apiRequirements: '',
+              multilingualSupport: false,
+              accessibilityCompliance: '',
+              estimatedTraffic: '',
+              responsiveDesign: '',
               price: 150,
-            } as WebServiceConfig;
+            };
+            setServiceConfig(prev => ({
+              ...prev,
+              web: webConfig
+            }));
             break;
           case 'cloud':
-            defaultConfig = {
+            const cloudConfig: CloudServiceConfig = {
               type: 'Mid-Level Infra',
+              accounts: 1,
+              providers: [],
+              scope: [],
+              regions: [],
+              compliance: [],
+              autoscaling: false,
+              cicdRequired: false,
+              serverless: false,
+              containerization: false,
+              disasterRecovery: false,
+              monitoring: [],
+              costEstimation: '',
               price: 300,
-            } as CloudServiceConfig;
+            };
+            setServiceConfig(prev => ({
+              ...prev,
+              cloud: cloudConfig
+            }));
             break;
           case 'network':
-            defaultConfig = {
+            const networkConfig: NetworkServiceConfig = {
               type: 'Secure External Network',
+              mode: 'External',
+              ipCount: 10,
+              vpnRequired: false,
+              firewall: false,
+              idsIps: false,
+              segmentation: false,
+              bandwidth: '',
+              ipv6Support: false,
+              networkDiagram: false,
+              dnsServices: '',
+              remoteAccess: [],
+              thirdPartyConnectivity: '',
               price: 250,
-            } as NetworkServiceConfig;
+            };
+            setServiceConfig(prev => ({
+              ...prev,
+              network: networkConfig
+            }));
             break;
           case 'mobile':
-            defaultConfig = {
+            const mobileConfig: MobileServiceConfig = {
               type: 'Mid-Level App',
+              count: 1,
+              platforms: 'Both',
+              codeAccess: false,
+              developmentType: '',
+              appStoreDeployment: false,
+              pushNotifications: false,
+              backendIntegration: false,
+              apiType: '',
+              paymentIntegration: false,
+              authentication: '',
+              offlineFunctionality: false,
+              inAppPurchases: false,
+              analytics: '',
+              securityRequirements: '',
               price: 200,
-            } as MobileServiceConfig;
+            };
+            setServiceConfig(prev => ({
+              ...prev,
+              mobile: mobileConfig
+            }));
             break;
-          default:
-            return;
         }
-        
-        setServiceConfig(prev => ({
-          ...prev,
-          [service]: defaultConfig
-        }));
       }
     } else if (activeServiceForm === service) {
       // If service is being disabled and it's the active form, clear active form
