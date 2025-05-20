@@ -41,17 +41,16 @@ const Index = () => {
           const cveIdMatch = vuln.title?.match(cveIdRegex) || vuln.description?.match(cveIdRegex);
           const cveId = cveIdMatch ? cveIdMatch[0] : `CVE-${new Date().getFullYear()}-XXXX`;
           
-          // Generate a CVSS score if not present
+          // Generate a CVSS score based on severity
           const cvssScore = 
             vuln.severity === 'critical' ? 9.5 :
             vuln.severity === 'high' ? 7.5 :
             vuln.severity === 'medium' ? 5.0 : 3.0;
             
-          // Generate affected products - use a default array if none are provided
-          const affectedProductsStr = vuln.business_impact || '';
-          const affectedProducts = affectedProductsStr.includes('affecting') 
-            ? [affectedProductsStr.split('affecting')[1].split('.')[0].trim()]
-            : ['Unknown System'];
+          // Generate affected products from business_impact
+          const affectedProducts = vuln.business_impact ? 
+            [vuln.business_impact.split('.')[0]] : 
+            ['Unknown System'];
           
           // Generate exploit status based on risk rating
           const exploitStatus = 
