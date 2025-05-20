@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,6 +9,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useToast } from '@/components/ui/use-toast';
 import { CompanyProfile } from '@/types/purpose';
+import { supabase } from '@/integrations/supabase/client';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 const companySchema = z.object({
   companyName: z.string().min(2, { message: "Company name is required" }),
@@ -24,6 +25,7 @@ type CompanyIntelligenceTabProps = {
 const CompanyIntelligenceTab = ({ companyProfile, setCompanyProfile, moveToNextTab }: CompanyIntelligenceTabProps) => {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const companyForm = useForm({
     resolver: zodResolver(companySchema),
@@ -36,138 +38,94 @@ const CompanyIntelligenceTab = ({ companyProfile, setCompanyProfile, moveToNextT
     if (!data.companyName) return;
     
     setIsLoading(true);
+    setError(null);
+    
     try {
-      // Call OpenAI to generate company profile
-      const response = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer ' + import.meta.env.VITE_OPENAI_API_KEY
-        },
-        body: JSON.stringify({
-          model: 'gpt-4o-mini',
-          messages: [
-            { 
-              role: 'system', 
-              content: 'You are an AI assistant specialized in company intelligence. Generate a detailed profile for the given company with these exact fields: name, website, headOffice, employeeCount, mainBusiness (array), established, capital, revenue, dataBreaches (array), isListed, stockPrice, country, isJapaneseListed. Format as JSON.' 
-            },
-            { 
-              role: 'user', 
-              content: `Generate a company profile for: ${data.companyName}` 
-            }
-          ],
-          temperature: 0.7
-        })
+      // Call our Supabase Edge Function
+      const { data: responseData, error: functionError } = await supabase.functions.invoke('company-profile', {
+        body: { companyName: data.companyName }
       });
       
-      if (!response.ok) {
-        throw new Error('Failed to fetch company data');
+      if (functionError) {
+        throw new Error(`Function error: ${functionError.message}`);
       }
       
-      const result = await response.json();
-      
-      try {
-        // Parse the OpenAI response to extract the company profile
-        const content = result.choices[0].message.content;
-        // Try to extract JSON from the content if it's not already JSON
-        const jsonMatch = content.match(/```json\n([\s\S]*)\n```/) || content.match(/({[\s\S]*})/);
-        const profileData = jsonMatch ? JSON.parse(jsonMatch[1]) : JSON.parse(content);
-        
-        // Use the parsed data or fall back to generated mock data
-        const mockProfile: CompanyProfile = {
-          name: profileData.name || data.companyName,
-          website: profileData.website || `${data.companyName.toLowerCase().replace(/\s+/g, '')}.com`,
-          headOffice: profileData.headOffice || 'Unknown',
-          employeeCount: profileData.employeeCount || Math.floor(Math.random() * 10000),
-          mainBusiness: profileData.mainBusiness || ['Technology'],
-          established: profileData.established || Math.floor(Math.random() * 30 + 1980).toString(),
-          capital: profileData.capital || 'Unknown',
-          revenue: profileData.revenue || 'Unknown',
-          dataBreaches: profileData.dataBreaches || [],
-          isListed: profileData.isListed || false,
-          stockPrice: profileData.stockPrice || 'N/A',
-          country: profileData.country || 'Unknown',
-          isJapaneseListed: profileData.isJapaneseListed || false
-        };
-        
-        setCompanyProfile(mockProfile);
-        toast({
-          title: "Company Profile Generated",
-          description: `Successfully retrieved information about ${mockProfile.name}`,
-        });
-        
-        // Move to services tab after profile is generated
-        moveToNextTab();
-      } catch (parseError) {
-        console.error("Error parsing OpenAI response:", parseError);
-        // Fallback to mock data on parsing error
-        const isJapaneseListed = data.companyName.toLowerCase().includes('sony') || 
-                              data.companyName.toLowerCase().includes('toyota') ||
-                              data.companyName.toLowerCase().includes('nintendo');
-      
-        const mockProfile: CompanyProfile = {
-          name: data.companyName,
-          website: data.companyName.toLowerCase().replace(/\s+/g, '') + '.com',
-          headOffice: isJapaneseListed ? 'Tokyo, Japan' : 'Unknown',
-          employeeCount: isJapaneseListed ? Math.floor(Math.random() * 100000) + 10000 : Math.floor(Math.random() * 10000),
-          mainBusiness: isJapaneseListed 
-            ? ['Electronics', 'Entertainment', 'Financial Services'] 
-            : ['Technology'],
-          established: isJapaneseListed ? '1946' : Math.floor(Math.random() * 30 + 1980).toString(),
-          capital: isJapaneseListed ? '¥880.24 billion' : 'Unknown',
-          revenue: isJapaneseListed ? '¥11.54 trillion' : 'Unknown',
-          dataBreaches: [],
-          isListed: isJapaneseListed,
-          stockPrice: isJapaneseListed ? '¥14,000' : 'N/A',
-          country: isJapaneseListed ? 'Japan' : 'Unknown',
-          isJapaneseListed: isJapaneseListed,
-        };
-        
-        setCompanyProfile(mockProfile);
-        toast({
-          title: "Company Profile Generated",
-          description: `Successfully generated information about ${data.companyName}`,
-        });
-        
-        // Move to services tab after profile is generated
-        moveToNextTab();
+      if (!responseData.success) {
+        throw new Error(responseData.error || 'Failed to generate company profile');
       }
-    } catch (error) {
-      console.error('Error generating company profile:', error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to generate company profile. Using simulated data.",
-      });
       
-      // Fallback to simulated data on API error
-      const isJapaneseListed = data.companyName.toLowerCase().includes('sony') || 
-                            data.companyName.toLowerCase().includes('toyota') ||
-                            data.companyName.toLowerCase().includes('nintendo');
+      const profileData = responseData.profile;
       
-      const mockProfile: CompanyProfile = {
-        name: data.companyName,
-        website: data.companyName.toLowerCase().replace(/\s+/g, '') + '.com',
-        headOffice: isJapaneseListed ? 'Tokyo, Japan' : 'Unknown',
-        employeeCount: isJapaneseListed ? Math.floor(Math.random() * 100000) + 10000 : Math.floor(Math.random() * 10000),
-        mainBusiness: isJapaneseListed 
-          ? ['Electronics', 'Entertainment', 'Financial Services'] 
-          : ['Technology'],
-        established: isJapaneseListed ? '1946' : Math.floor(Math.random() * 30 + 1980).toString(),
-        capital: isJapaneseListed ? '¥880.24 billion' : 'Unknown',
-        revenue: isJapaneseListed ? '¥11.54 trillion' : 'Unknown',
-        dataBreaches: [],
-        isListed: isJapaneseListed,
-        stockPrice: isJapaneseListed ? '¥14,000' : 'N/A',
-        country: isJapaneseListed ? 'Japan' : 'Unknown',
-        isJapaneseListed: isJapaneseListed,
+      // Create the company profile from the returned data
+      const profile: CompanyProfile = {
+        name: profileData.name || data.companyName,
+        website: profileData.website || `${data.companyName.toLowerCase().replace(/\s+/g, '')}.com`,
+        headOffice: profileData.headOffice || 'Unknown',
+        employeeCount: profileData.employeeCount || Math.floor(Math.random() * 10000),
+        mainBusiness: profileData.mainBusiness || ['Technology'],
+        established: profileData.established || Math.floor(Math.random() * 30 + 1980).toString(),
+        capital: profileData.capital || 'Unknown',
+        revenue: profileData.revenue || 'Unknown',
+        dataBreaches: profileData.dataBreaches || [],
+        isListed: profileData.isListed || false,
+        stockPrice: profileData.stockPrice || 'N/A',
+        country: profileData.country || 'Unknown',
+        isJapaneseListed: profileData.isJapaneseListed || false
       };
       
-      setCompanyProfile(mockProfile);
+      setCompanyProfile(profile);
+      toast({
+        title: "Company Profile Generated",
+        description: `Successfully retrieved information about ${profile.name}`,
+      });
+      
+      // Move to services tab after profile is generated
       moveToNextTab();
+      
+    } catch (error) {
+      console.error('Error generating company profile:', error);
+      setError(error instanceof Error ? error.message : 'Failed to generate company profile');
+      
+      // Fallback to simulated data
+      createFallbackProfile(data.companyName);
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const createFallbackProfile = (companyName: string) => {
+    // Fallback to simulated data on API error
+    const isJapaneseListed = companyName.toLowerCase().includes('sony') || 
+                        companyName.toLowerCase().includes('toyota') ||
+                        companyName.toLowerCase().includes('nintendo') ||
+                        companyName.includes('株式会社');
+    
+    toast({
+      variant: "destructive",
+      title: "Error",
+      description: "Failed to generate company profile. Using simulated data.",
+    });
+    
+    const mockProfile: CompanyProfile = {
+      name: companyName,
+      website: companyName.toLowerCase().replace(/\s+/g, '') + '.com',
+      headOffice: isJapaneseListed ? 'Tokyo, Japan' : 'Unknown',
+      employeeCount: isJapaneseListed ? Math.floor(Math.random() * 100000) + 10000 : Math.floor(Math.random() * 10000),
+      mainBusiness: isJapaneseListed 
+        ? ['Electronics', 'Entertainment', 'Financial Services'] 
+        : ['Technology'],
+      established: isJapaneseListed ? '1946' : Math.floor(Math.random() * 30 + 1980).toString(),
+      capital: isJapaneseListed ? '¥880.24 billion' : 'Unknown',
+      revenue: isJapaneseListed ? '¥11.54 trillion' : 'Unknown',
+      dataBreaches: [],
+      isListed: isJapaneseListed,
+      stockPrice: isJapaneseListed ? '¥14,000' : 'N/A',
+      country: isJapaneseListed ? 'Japan' : 'Unknown',
+      isJapaneseListed: isJapaneseListed,
+    };
+    
+    setCompanyProfile(mockProfile);
+    moveToNextTab();
   };
 
   return (
@@ -178,6 +136,13 @@ const CompanyIntelligenceTab = ({ companyProfile, setCompanyProfile, moveToNextT
           <CardDescription>Enter a company name to generate a profile using AI</CardDescription>
         </CardHeader>
         <CardContent>
+          {error && (
+            <Alert variant="destructive" className="mb-4">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Error</AlertTitle>
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
           <Form {...companyForm}>
             <form onSubmit={companyForm.handleSubmit(generateCompanyProfile)} className="space-y-6">
               <FormField
@@ -190,7 +155,7 @@ const CompanyIntelligenceTab = ({ companyProfile, setCompanyProfile, moveToNextT
                       <Input placeholder="e.g., Sony Corporation" {...field} />
                     </FormControl>
                     <FormDescription>
-                      Enter the full company name to analyze (Try "Sony" or "Nintendo" for Japanese listed examples)
+                      Enter the full company name to analyze (Try "Sony" or "Nintendo" for Japanese listed examples, or "株式会社エスプール" for Japanese companies)
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
