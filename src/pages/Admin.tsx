@@ -37,17 +37,23 @@ const Admin = () => {
         .from('vulnerabilities')
         .select('*', { count: 'exact', head: true });
 
-      // Get AI enhanced count - this would need to be adjusted based on your schema
+      if (vulnError) throw vulnError;
+
+      // Get AI enhanced count - entries with technical_impact populated
       const { count: enhancedCount, error: enhancedError } = await supabase
         .from('vulnerabilities')
         .select('*', { count: 'exact', head: true })
-        .not('technical_impact', 'is', null); // assuming technical_impact being filled means it's AI enhanced
+        .not('technical_impact', 'is', null);
 
-      // Get Japanese blogs count - this would need adjustment based on your criteria
+      if (enhancedError) throw enhancedError;
+
+      // Get Japanese blogs count - for now, this is just a placeholder
       const { count: blogCount, error: blogError } = await supabase
         .from('vulnerabilities')
         .select('*', { count: 'exact', head: true })
-        .not('title', 'is', null);
+        .not('severity', 'is', null);
+
+      if (blogError) throw blogError;
 
       setStats({
         totalVulnerabilities: vulnCount || 0,
@@ -58,6 +64,12 @@ const Admin = () => {
     } catch (error) {
       console.error('Error fetching stats:', error);
       setStats(prev => ({ ...prev, isLoading: false }));
+      
+      toast({
+        title: "データの取得エラー",
+        description: `統計情報を取得できませんでした: ${error.message}`,
+        variant: "destructive",
+      });
     }
   };
 
@@ -73,7 +85,7 @@ const Admin = () => {
       
       if (error) throw error;
       
-      if (data.success) {
+      if (data && data.success) {
         addLog(`取得中: CVE エントリーをダウンロードしています...`);
         addLog(`成功: ${data.count} 件の新しい CVE エントリーを取得しました`);
         addLog('保存中: データベースに生データを保存しています...');
@@ -83,12 +95,12 @@ const Admin = () => {
           title: "CVE データ取得完了",
           description: `${data.count} 件の新しい CVE エントリーが保存されました`,
         });
+        
+        // Refresh stats
+        fetchStats();
       } else {
-        throw new Error(data.message || "Failed to fetch CVE data");
+        throw new Error(data?.message || "CVE データの取得に失敗しました");
       }
-      
-      // Refresh stats after operation
-      fetchStats();
     } catch (error) {
       console.error('Error fetching CVEs:', error);
       addLog(`エラー: CVE データの取得中にエラーが発生しました - ${error.message}`);
@@ -115,7 +127,7 @@ const Admin = () => {
       
       if (error) throw error;
       
-      if (data.success) {
+      if (data && data.success) {
         const processedCount = data.count;
         
         if (processedCount === 0) {
@@ -124,15 +136,18 @@ const Admin = () => {
           addLog(`見つかりました: ${processedCount} 件の未処理エントリーがあります`);
           
           // Process results
-          data.processed.forEach((result, index) => {
+          data.processed.forEach((result: any) => {
             if (result.status === "success") {
-              addLog(`成功: "${result.title}" が強化されました - 技術的分析と影響評価が追加されました`);
+              addLog(`成功: "${result.cve_id || result.title}" が強化されました - 技術的分析と影響評価が追加されました`);
             } else {
-              addLog(`警告: "${result.title}" の処理に失敗しました - ${result.error || "不明なエラー"}`);
+              addLog(`警告: "${result.cve_id || result.title}" の処理に失敗しました - ${result.error || "不明なエラー"}`);
             }
           });
           
           addLog('完了: AI 強化処理が終了しました');
+          
+          // Refresh stats
+          fetchStats();
         }
         
         toast({
@@ -140,11 +155,8 @@ const Admin = () => {
           description: `${processedCount} 件のエントリーが処理されました`,
         });
       } else {
-        throw new Error(data.message || "Failed to enrich CVE data");
+        throw new Error(data?.message || "CVE データの強化に失敗しました");
       }
-      
-      // Refresh stats after operation
-      fetchStats();
     } catch (error) {
       console.error('Error enriching CVEs:', error);
       addLog(`エラー: CVE 強化中にエラーが発生しました - ${error.message}`);
