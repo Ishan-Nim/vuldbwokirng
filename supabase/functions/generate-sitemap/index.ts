@@ -62,12 +62,7 @@ serve(async (req) => {
     sitemap += '    <priority>0.7</priority>\n';
     sitemap += '  </url>\n';
 
-    // Add admin page
-    sitemap += '  <url>\n';
-    sitemap += `    <loc>${baseUrl}/admin</loc>\n`;
-    sitemap += '    <changefreq>weekly</changefreq>\n';
-    sitemap += '    <priority>0.6</priority>\n';
-    sitemap += '  </url>\n';
+    // Admin page removed from sitemap
 
     // Add all vulnerabilities (both CVEs and blog posts)
     if (vulnerabilities && vulnerabilities.length > 0) {
