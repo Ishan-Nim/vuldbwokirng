@@ -27,14 +27,14 @@ serve(async (req) => {
     
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Fetch all blog posts
-    const { data: blogPosts, error: blogError } = await supabase
+    // Fetch all vulnerabilities with no limit (including both CVEs and blog posts)
+    const { data: vulnerabilities, error: vulnerabilityError } = await supabase
       .from('vulnerabilities')
       .select('id, title, updated_at')
       .order('updated_at', { ascending: false });
       
-    if (blogError) {
-      throw blogError;
+    if (vulnerabilityError) {
+      throw vulnerabilityError;
     }
 
     // Generate sitemap XML
@@ -62,13 +62,22 @@ serve(async (req) => {
     sitemap += '    <priority>0.7</priority>\n';
     sitemap += '  </url>\n';
 
-    // Add all blog posts
-    if (blogPosts) {
-      for (const post of blogPosts) {
-        const lastMod = post.updated_at ? new Date(post.updated_at).toISOString().split('T')[0] : '';
+    // Add admin page
+    sitemap += '  <url>\n';
+    sitemap += `    <loc>${baseUrl}/admin</loc>\n`;
+    sitemap += '    <changefreq>weekly</changefreq>\n';
+    sitemap += '    <priority>0.6</priority>\n';
+    sitemap += '  </url>\n';
+
+    // Add all vulnerabilities (both CVEs and blog posts)
+    if (vulnerabilities && vulnerabilities.length > 0) {
+      console.log(`Adding ${vulnerabilities.length} vulnerabilities to sitemap`);
+      
+      for (const vuln of vulnerabilities) {
+        const lastMod = vuln.updated_at ? new Date(vuln.updated_at).toISOString().split('T')[0] : '';
         
         sitemap += '  <url>\n';
-        sitemap += `    <loc>${baseUrl}/blog/${post.id}</loc>\n`;
+        sitemap += `    <loc>${baseUrl}/blog/${vuln.id}</loc>\n`;
         if (lastMod) {
           sitemap += `    <lastmod>${lastMod}</lastmod>\n`;
         }
@@ -76,6 +85,8 @@ serve(async (req) => {
         sitemap += '    <priority>0.8</priority>\n';
         sitemap += '  </url>\n';
       }
+    } else {
+      console.log("No vulnerabilities found to add to sitemap");
     }
     
     sitemap += '</urlset>';

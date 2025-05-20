@@ -22,13 +22,18 @@ const SitemapXML = () => {
     const fetchSitemap = async () => {
       try {
         // Invoke the generate-sitemap function
-        await supabase.functions.invoke('generate-sitemap');
+        const { data: response, error } = await supabase.functions.invoke('generate-sitemap');
         
-        // Redirect to the correct URL
-        window.location.href = `https://ehow-vulnerability.com/sitemap.xml`;
+        if (error) {
+          throw error;
+        }
+
+        // Set the content type to XML
+        document.querySelector('html').setAttribute('content-type', 'application/xml');
+        document.body.innerHTML = response || '<h1>Error: No sitemap content returned</h1>';
       } catch (error) {
         console.error("Error fetching sitemap:", error);
-        document.body.innerHTML = '<h1>Error loading sitemap</h1>';
+        document.body.innerHTML = `<h1>Error loading sitemap</h1><pre>${JSON.stringify(error, null, 2)}</pre>`;
       }
     };
     
