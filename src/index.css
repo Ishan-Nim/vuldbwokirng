@@ -42,13 +42,13 @@
   }
  
   .dark {
-    --background: 222.2 84% 4.9%;
+    --background: 222.2 47.4% 11.2%;
     --foreground: 210 40% 98%;
  
-    --card: 222.2 84% 4.9%;
+    --card: 217.2 32.6% 17.5%;
     --card-foreground: 210 40% 98%;
  
-    --popover: 222.2 84% 4.9%;
+    --popover: 222.2 47.4% 11.2%;
     --popover-foreground: 210 40% 98%;
  
     --primary: 210 40% 98%;
@@ -78,6 +78,11 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply tracking-tight;
   }
 }
 
@@ -102,17 +107,32 @@
 }
 
 .text-severity-critical {
-  @apply text-red-600;
+  @apply text-red-600 dark:text-red-400;
 }
 
 .text-severity-high {
-  @apply text-orange-500;
+  @apply text-orange-500 dark:text-orange-300;
 }
 
 .text-severity-medium {
-  @apply text-yellow-500;
+  @apply text-yellow-500 dark:text-yellow-300;
 }
 
 .text-severity-low {
-  @apply text-green-600;
+  @apply text-green-600 dark:text-green-400;
+}
+
+/* Add smooth transitions for theme switching */
+html {
+  transition: background-color 0.3s, color 0.3s;
+}
+
+/* Card styles for a more flat UI */
+.flat-card {
+  @apply rounded-lg border bg-card text-card-foreground shadow-sm;
+}
+
+/* Button hover effects */
+.hover-lift {
+  @apply transition-transform duration-300 hover:-translate-y-1;
 }

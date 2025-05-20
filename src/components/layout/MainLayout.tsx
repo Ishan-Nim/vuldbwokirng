@@ -1,8 +1,10 @@
 
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { Database, Shield, BookOpen, Target } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
+import { Database, BookOpen, Target } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { ThemeToggle } from './ThemeToggle';
+import Logo from './Logo';
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -37,29 +39,27 @@ const MainLayout = ({ children }: MainLayoutProps) => {
       <header className="sticky top-0 bg-card dark:bg-card shadow-sm border-b z-10">
         <div className="container mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <Link to="/" className="flex items-center space-x-2">
-                <Shield className="h-6 w-6 text-primary" />
-                <span className="text-lg font-bold">eHow Vulnerability</span>
-              </Link>
+            <Logo size="md" />
+            <div className="flex items-center space-x-6">
+              <nav className="flex space-x-6">
+                {navLinks.map((link) => (
+                  <a
+                    key={link.path}
+                    href={link.path}
+                    className={cn(
+                      "flex items-center space-x-1 px-2 py-1 rounded-md transition-colors",
+                      currentPath === link.path || currentPath.startsWith(`${link.path}/`)
+                        ? "text-primary font-medium"
+                        : "text-muted-foreground hover:text-foreground"
+                    )}
+                  >
+                    {link.icon}
+                    <span className="hidden md:inline">{link.name}</span>
+                  </a>
+                ))}
+              </nav>
+              <ThemeToggle />
             </div>
-            <nav className="flex space-x-6">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.path}
-                  to={link.path}
-                  className={cn(
-                    "flex items-center space-x-1 px-2 py-1 rounded-md transition-colors",
-                    currentPath === link.path || currentPath.startsWith(`${link.path}/`)
-                      ? "text-primary font-medium"
-                      : "text-muted-foreground hover:text-foreground"
-                  )}
-                >
-                  {link.icon}
-                  <span className="hidden md:inline">{link.name}</span>
-                </Link>
-              ))}
-            </nav>
           </div>
         </div>
       </header>
