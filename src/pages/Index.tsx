@@ -46,14 +46,17 @@ const Index = () => {
             vuln.severity === 'high' ? 7.5 :
             vuln.severity === 'medium' ? 5.0 : 3.0;
             
-          // Generate affected products from risk rating or provide defaults
-          const affectedProducts = vuln.affected_products || ['Unknown System'];
+          // Generate affected products - use a default array if none are provided
+          const affectedProductsStr = vuln.business_impact || '';
+          const affectedProducts = affectedProductsStr.includes('affecting') 
+            ? [affectedProductsStr.split('affecting')[1].split('.')[0].trim()]
+            : ['Unknown System'];
           
           // Generate exploit status based on risk rating
-          const exploitStatus = vuln.exploit_status || 
-            (vuln.risk_rating === 'critical' ? 'Actively Exploited' : 
+          const exploitStatus = 
+            vuln.risk_rating === 'critical' ? 'Actively Exploited' : 
             vuln.risk_rating === 'high' ? 'Exploit Available' : 
-            'No Known Exploits');
+            'No Known Exploits';
           
           return {
             id: vuln.id,
