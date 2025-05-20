@@ -126,10 +126,14 @@ serve(async (req) => {
       // Update the schedule record
       await updateScheduleRecord('generate-blogs', supabase);
       
+      // After blog generation, update sitemap
+      const sitemapResponse = await supabase.functions.invoke('generate-sitemap');
+      console.log('Sitemap regenerated after blog generation:', sitemapResponse);
+      
       return new Response(
         JSON.stringify({ 
           success: true, 
-          message: `Successfully scheduled generation of ${generatedCount} blog posts`, 
+          message: `Successfully scheduled generation of ${generatedCount} blog posts and updated sitemap`, 
           topics: topicsToCreate
         }),
         { 
@@ -205,6 +209,24 @@ serve(async (req) => {
         JSON.stringify({ 
           success: true, 
           message: "All database tables have been completely cleared. Database is now empty and ready for customer use."
+        }),
+        { 
+          headers: { ...corsHeaders, "Content-Type": "application/json" } 
+        }
+      );
+    }
+    else if (task === "update-sitemap") {
+      // Call the generate-sitemap function
+      const sitemapResponse = await supabase.functions.invoke('generate-sitemap');
+      
+      if (sitemapResponse.error) {
+        throw new Error(`Error updating sitemap: ${sitemapResponse.error.message}`);
+      }
+      
+      return new Response(
+        JSON.stringify({ 
+          success: true, 
+          message: "Sitemap updated successfully"
         }),
         { 
           headers: { ...corsHeaders, "Content-Type": "application/json" } 

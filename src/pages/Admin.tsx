@@ -11,6 +11,7 @@ import { format, parseISO } from 'date-fns';
 import { Clock, RefreshCw, FileText, ArrowDownUp, AlertCircle, Database } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import ClearDatabaseCard from '@/components/admin/ClearDatabaseCard';
+import SitemapUpdateCard from '@/components/admin/SitemapUpdateCard';
 
 // Define type for scheduled tasks
 interface ScheduledTask {
@@ -364,6 +365,10 @@ const Admin = () => {
             />
 
             <ClearDatabaseCard 
+              onLogUpdate={(logs) => updateLogs('actions', logs)}
+            />
+
+            <SitemapUpdateCard
               onLogUpdate={(logs) => updateLogs('actions', logs)}
             />
           </div>

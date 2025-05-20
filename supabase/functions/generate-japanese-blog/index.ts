@@ -388,6 +388,15 @@ app.post('/api/user', (req, res) => {
       throw refError;
     }
 
+    // Update sitemap after blog creation
+    try {
+      const sitemapResponse = await supabase.functions.invoke('generate-sitemap');
+      console.log('Sitemap updated after new blog creation');
+    } catch (sitemapError) {
+      console.error('Error updating sitemap:', sitemapError);
+      // Don't throw here, as we want to return success for the blog creation
+    }
+
     return new Response(
       JSON.stringify({ success: true, vulnerabilityId }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
