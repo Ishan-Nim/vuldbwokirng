@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Clock, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
-interface LogEntry {
+export interface LogEntry {
   timestamp: string;
   message: string;
   type: 'info' | 'success' | 'warning' | 'error';
@@ -23,6 +23,11 @@ const ProcessingLogs: React.FC<ProcessingLogsProps> = ({
   logs = []
 }) => {
   const [localLogs, setLocalLogs] = useState<LogEntry[]>(logs);
+  
+  // Update local logs when props change
+  React.useEffect(() => {
+    setLocalLogs(logs);
+  }, [logs]);
   
   const getLogBadgeColor = (type: string) => {
     switch(type) {
