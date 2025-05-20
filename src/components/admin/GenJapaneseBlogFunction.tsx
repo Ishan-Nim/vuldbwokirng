@@ -17,12 +17,12 @@ const GenJapaneseBlogFunction: React.FC = () => {
 
   const handleGenerate = async () => {
     if (!title.trim()) {
-      toast.error('ブログタイトルを入力してください');
+      toast.error('Please enter a blog title');
       return;
     }
 
     setIsGenerating(true);
-    setGenerationLog('OpenAIに日本語ブログ生成をリクエスト中...\n');
+    setGenerationLog('Requesting Japanese blog generation from OpenAI...\n');
     
     try {
       // Call the Supabase Edge Function
@@ -32,17 +32,17 @@ const GenJapaneseBlogFunction: React.FC = () => {
 
       if (error) throw error;
 
-      setGenerationLog(prev => prev + 'タイトルと内容を処理しています...\n');
+      setGenerationLog(prev => prev + 'Processing title and content...\n');
       setTimeout(() => {
-        setGenerationLog(prev => prev + '脅威モデリングと技術分析を生成中...\n');
+        setGenerationLog(prev => prev + 'Generating threat modeling and technical analysis...\n');
         
         setTimeout(() => {
-          setGenerationLog(prev => prev + '対策推奨事項とリファレンス情報を追加中...\n');
+          setGenerationLog(prev => prev + 'Adding remediation recommendations and references...\n');
           
           setTimeout(() => {
-            setGenerationLog(prev => prev + `ブログ記事の生成が完了しました！ID: ${data.vulnerabilityId}\n`);
+            setGenerationLog(prev => prev + `Blog post generation complete! ID: ${data.vulnerabilityId}\n`);
             setIsGenerating(false);
-            toast.success('日本語ブログ記事が正常に生成されました');
+            toast.success('Japanese blog post successfully generated');
             
             // Navigate to the blog detail page
             navigate(`/blog/${data.vulnerabilityId}`);
@@ -51,29 +51,29 @@ const GenJapaneseBlogFunction: React.FC = () => {
       }, 1000);
     } catch (err) {
       console.error("Error generating blog:", err);
-      setGenerationLog(prev => prev + `エラーが発生しました: ${err.message || 'Unknown error'}\n`);
+      setGenerationLog(prev => prev + `Error occurred: ${err.message || 'Unknown error'}\n`);
       setIsGenerating(false);
-      toast.error('ブログ記事の生成中にエラーが発生しました');
+      toast.error('An error occurred while generating the blog post');
     }
   };
 
   return (
     <Card className="w-full">
       <CardHeader>
-        <CardTitle>日本語セキュリティブログを生成</CardTitle>
+        <CardTitle>Generate Japanese Security Blog</CardTitle>
         <CardDescription>
-          脆弱性のタイトルを日本語で入力すると、AIが自動的に包括的なセキュリティブログ記事を生成します
+          Enter a vulnerability title in Japanese and AI will automatically generate a comprehensive security blog post
         </CardDescription>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
           <div className="space-y-2">
             <label htmlFor="blogTitle" className="text-sm font-medium">
-              ブログタイトル（日本語）
+              Blog Title (Japanese)
             </label>
             <Input
               id="blogTitle"
-              placeholder="例：SQLインジェクション脆弱性の分析"
+              placeholder="Example: SQLインジェクション脆弱性の分析"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               disabled={isGenerating}
@@ -82,7 +82,7 @@ const GenJapaneseBlogFunction: React.FC = () => {
           
           {generationLog && (
             <div className="space-y-2">
-              <label className="text-sm font-medium">生成ログ</label>
+              <label className="text-sm font-medium">Generation Log</label>
               <Textarea 
                 value={generationLog} 
                 readOnly 
@@ -101,9 +101,9 @@ const GenJapaneseBlogFunction: React.FC = () => {
           {isGenerating ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ブログ記事を生成中...
+              Generating blog post...
             </>
-          ) : 'ブログ記事を生成'}
+          ) : 'Generate Blog Post'}
         </Button>
       </CardFooter>
     </Card>

@@ -68,11 +68,10 @@ serve(async (req) => {
       {
         ref_type: "CWE",
         ref_url: "https://cwe.mitre.org/data/definitions/89.html",
-        ref_ref_title: "CWE-89: SQLインジェクション"
+        ref_title: "CWE-89: SQLインジェクション"
       }
     ];
 
-    // In a real implementation, this would create the records in Supabase
     // Create Supabase client
     const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
@@ -86,6 +85,7 @@ serve(async (req) => {
       .single();
 
     if (vulnError) {
+      console.error("Error inserting vulnerability:", vulnError);
       throw vulnError;
     }
 
@@ -100,6 +100,7 @@ serve(async (req) => {
       });
 
     if (threatError) {
+      console.error("Error inserting threat modeling:", threatError);
       throw threatError;
     }
 
@@ -114,6 +115,7 @@ serve(async (req) => {
       .insert(remedationsWithVulnId);
 
     if (remError) {
+      console.error("Error inserting remediations:", remError);
       throw remError;
     }
 
@@ -128,6 +130,7 @@ serve(async (req) => {
       .insert(referencesWithVulnId);
 
     if (refError) {
+      console.error("Error inserting references:", refError);
       throw refError;
     }
 
