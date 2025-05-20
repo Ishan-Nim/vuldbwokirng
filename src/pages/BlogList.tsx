@@ -14,13 +14,15 @@ import {
 } from '@/components/ui/pagination';
 import { supabase } from '@/integrations/supabase/client';
 import BlogCardSkeleton from '@/components/blog/BlogCardSkeleton';
+import { Button } from '@/components/ui/button';
+import { RefreshCw } from 'lucide-react';
 
 const BlogList: React.FC = () => {
   const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 20;
 
-  const { data: blogs, isLoading } = useQuery({
+  const { data: blogs, isLoading, refetch } = useQuery({
     queryKey: ['blogs', currentPage, pageSize],
     queryFn: async () => {
       const startIndex = (currentPage - 1) * pageSize;
@@ -35,7 +37,7 @@ const BlogList: React.FC = () => {
         .range(startIndex, startIndex + pageSize - 1);
         
       if (error) throw error;
-      return { data: data || [], count };
+      return { data: data || [], count: count || 0 };
     },
   });
 
@@ -43,6 +45,10 @@ const BlogList: React.FC = () => {
 
   const handleBlogClick = (id: string) => {
     navigate(`/blog/${id}`);
+  };
+  
+  const handleRefresh = () => {
+    refetch();
   };
 
   // Generate page numbers for pagination
@@ -86,7 +92,13 @@ const BlogList: React.FC = () => {
 
   return (
     <div className="container mx-auto p-4 min-h-screen">
-      <h1 className="text-3xl font-bold mb-6">セキュリティブログ</h1>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold">Security Blog</h1>
+        <Button variant="outline" size="sm" onClick={handleRefresh} className="flex items-center gap-1">
+          <RefreshCw className="h-4 w-4" />
+          Refresh
+        </Button>
+      </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {isLoading ? (
@@ -100,7 +112,7 @@ const BlogList: React.FC = () => {
               key={blog.id}
               cveId={blog.title}
               title={blog.title}
-              description={blog.description || "詳細はありません"}
+              description={blog.description || "No details available"}
               severity={blog.severity as 'critical' | 'high' | 'medium' | 'low'}
               cvssScore={0}
               publishedDate={blog.created_at}
@@ -109,8 +121,12 @@ const BlogList: React.FC = () => {
             />
           ))
         ) : (
-          <div className="col-span-full text-center py-8">
-            <p>ブログ記事がありません。</p>
+          <div className="col-span-full text-center py-16 border rounded-lg bg-muted/30">
+            <p className="text-xl font-medium text-muted-foreground mb-4">No blog posts found</p>
+            <p className="text-muted-foreground mb-6">The database has been cleared or no blog posts have been created yet.</p>
+            <Button variant="outline" size="sm" onClick={() => navigate('/admin')} className="mx-auto">
+              Go to Admin
+            </Button>
           </div>
         )}
       </div>
