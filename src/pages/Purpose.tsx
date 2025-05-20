@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -6,65 +5,153 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Loader2, Check, AlertCircle, Calculator, Database, Network, Smartphone } from 'lucide-react';
-import { useForm } from 'react-hook-form';
+import { useForm, FormProvider } from 'react-hook-form';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-
-type CompanyProfile = {
-  name: string;
-  website?: string;
-  headOffice?: string;
-  employeeCount?: number;
-  mainBusiness?: string[];
-  established?: string;
-  capital?: string;
-  revenue?: string;
-  dataBreaches?: string[];
-  isListed?: boolean;
-  stockPrice?: string;
-  country?: string;
-  isJapaneseListed?: boolean;
-};
-
-type ServiceType = 'web' | 'cloud' | 'network' | 'mobile';
-
-type ServiceConfig = {
-  web?: {
-    type: string;
-    pages?: number;
-    loginComplexity?: string;
-    technologies?: string[];
-    price: number;
-  };
-  cloud?: {
-    type: string;
-    accounts?: number;
-    providers?: string[];
-    scope?: string[];
-    price: number;
-  };
-  network?: {
-    type: string;
-    internal?: boolean;
-    ipCount?: number;
-    vpn?: boolean;
-    price: number;
-  };
-  mobile?: {
-    type: string;
-    count?: number;
-    platforms?: string[];
-    codeAccess?: boolean;
-    price: number;
-  };
-};
+import { ServiceFormSelector } from '@/components/purpose/ServiceFormSelector';
+import { CompanyProfile, ServiceType, ServiceConfig } from '@/types/purpose';
 
 const companySchema = z.object({
   companyName: z.string().min(2, { message: "Company name is required" }),
 });
+
+// Complex schema for all service configurations
+const serviceSchema = z.object({
+  web: z.object({
+    type: z.string().optional(),
+    pages: z.number().optional(),
+    loginComplexity: z.string().optional(),
+    technologies: z.array(z.string()).optional(),
+    hostingProvider: z.string().optional(),
+    cmsIntegration: z.boolean().optional(),
+    cmsType: z.string().optional(),
+    seoRequirements: z.boolean().optional(),
+    thirdPartyIntegrations: z.string().optional(),
+    apiRequirements: z.string().optional(),
+    multilingualSupport: z.boolean().optional(),
+    accessibilityCompliance: z.string().optional(),
+    estimatedTraffic: z.string().optional(),
+    responsiveDesign: z.string().optional()
+  }).optional(),
+  cloud: z.object({
+    type: z.string().optional(),
+    accounts: z.number().optional(),
+    providers: z.array(z.string()).optional(),
+    scope: z.array(z.string()).optional(),
+    regions: z.array(z.string()).optional(),
+    compliance: z.array(z.string()).optional(),
+    autoscaling: z.boolean().optional(),
+    cicdRequired: z.boolean().optional(),
+    cicdTools: z.string().optional(),
+    serverless: z.boolean().optional(),
+    containerization: z.boolean().optional(),
+    disasterRecovery: z.boolean().optional(),
+    monitoring: z.array(z.string()).optional(),
+    costEstimation: z.string().optional()
+  }).optional(),
+  network: z.object({
+    type: z.string().optional(),
+    mode: z.string().optional(),
+    ipCount: z.number().optional(),
+    vpnRequired: z.boolean().optional(),
+    firewall: z.boolean().optional(),
+    firewallType: z.string().optional(),
+    idsIps: z.boolean().optional(),
+    segmentation: z.boolean().optional(),
+    bandwidth: z.string().optional(),
+    ipv6Support: z.boolean().optional(),
+    networkDiagram: z.boolean().optional(),
+    dnsServices: z.string().optional(),
+    remoteAccess: z.array(z.string()).optional(),
+    thirdPartyConnectivity: z.string().optional()
+  }).optional(),
+  mobile: z.object({
+    type: z.string().optional(),
+    count: z.number().optional(),
+    platforms: z.string().optional(),
+    codeAccess: z.boolean().optional(),
+    developmentType: z.string().optional(),
+    appStoreDeployment: z.boolean().optional(),
+    pushNotifications: z.boolean().optional(),
+    backendIntegration: z.boolean().optional(),
+    apiType: z.string().optional(),
+    paymentIntegration: z.boolean().optional(),
+    authentication: z.string().optional(),
+    offlineFunctionality: z.boolean().optional(),
+    inAppPurchases: z.boolean().optional(),
+    analytics: z.string().optional(),
+    securityRequirements: z.string().optional()
+  }).optional()
+});
+
+// Create default service schema values
+const defaultServiceValues = {
+  web: {
+    type: "Corporate Website",
+    pages: 5,
+    loginComplexity: "Basic",
+    technologies: [],
+    hostingProvider: "",
+    cmsIntegration: false,
+    seoRequirements: false,
+    thirdPartyIntegrations: "",
+    apiRequirements: "",
+    multilingualSupport: false,
+    accessibilityCompliance: "",
+    estimatedTraffic: "",
+    responsiveDesign: ""
+  },
+  cloud: {
+    type: "Mid-Level Infra",
+    accounts: 1,
+    providers: [],
+    scope: [],
+    regions: [],
+    compliance: [],
+    autoscaling: false,
+    cicdRequired: false,
+    serverless: false,
+    containerization: false,
+    disasterRecovery: false,
+    monitoring: [],
+    costEstimation: ""
+  },
+  network: {
+    type: "Secure External Network",
+    mode: "External",
+    ipCount: 10,
+    vpnRequired: false,
+    firewall: false,
+    idsIps: false,
+    segmentation: false,
+    bandwidth: "",
+    ipv6Support: false,
+    networkDiagram: false,
+    dnsServices: "",
+    remoteAccess: [],
+    thirdPartyConnectivity: ""
+  },
+  mobile: {
+    type: "Mid-Level App",
+    count: 1,
+    platforms: "Both",
+    codeAccess: false,
+    developmentType: "",
+    appStoreDeployment: false,
+    pushNotifications: false,
+    backendIntegration: false,
+    apiType: "",
+    paymentIntegration: false,
+    authentication: "",
+    offlineFunctionality: false,
+    inAppPurchases: false,
+    analytics: "",
+    securityRequirements: ""
+  }
+};
 
 const Purpose = () => {
   const { toast } = useToast();
@@ -79,6 +166,7 @@ const Purpose = () => {
   });
   const [serviceConfig, setServiceConfig] = useState<ServiceConfig>({});
   const [quoteGenerated, setQuoteGenerated] = useState(false);
+  const [activeServiceForm, setActiveServiceForm] = useState<ServiceType | null>(null);
   
   // Company Intelligence Form
   const companyForm = useForm({
@@ -86,6 +174,12 @@ const Purpose = () => {
     defaultValues: {
       companyName: '',
     },
+  });
+
+  // Service Configuration Form
+  const serviceForm = useForm({
+    resolver: zodResolver(serviceSchema),
+    defaultValues: defaultServiceValues
   });
 
   const generateCompanyProfile = async (data: { companyName: string }) => {
@@ -146,37 +240,63 @@ const Purpose = () => {
       [service]: !prev[service]
     }));
 
-    // Initialize service config with default prices based on service type
-    if (!serviceConfig[service]) {
-      const defaultConfig: any = {};
+    // If service is being enabled, set it as active form and initialize config
+    if (!selectedServices[service]) {
+      setActiveServiceForm(service);
       
-      switch (service) {
-        case 'web':
-          defaultConfig.type = 'Corporate Website';
-          defaultConfig.price = 150;
-          break;
-        case 'cloud':
-          defaultConfig.type = 'Mid-Level Infra';
-          defaultConfig.price = 300;
-          break;
-        case 'network':
-          defaultConfig.type = 'Secure External Network';
-          defaultConfig.price = 250;
-          break;
-        case 'mobile':
-          defaultConfig.type = 'Mid-Level App';
-          defaultConfig.price = 200;
-          break;
+      // Initialize service config with default prices based on service type
+      if (!serviceConfig[service]) {
+        const defaultConfig: any = {};
+        
+        switch (service) {
+          case 'web':
+            defaultConfig.type = 'Corporate Website';
+            defaultConfig.price = 150;
+            break;
+          case 'cloud':
+            defaultConfig.type = 'Mid-Level Infra';
+            defaultConfig.price = 300;
+            break;
+          case 'network':
+            defaultConfig.type = 'Secure External Network';
+            defaultConfig.price = 250;
+            break;
+          case 'mobile':
+            defaultConfig.type = 'Mid-Level App';
+            defaultConfig.price = 200;
+            break;
+        }
+        
+        setServiceConfig(prev => ({
+          ...prev,
+          [service]: defaultConfig
+        }));
       }
-      
-      setServiceConfig(prev => ({
-        ...prev,
-        [service]: defaultConfig
-      }));
+    } else if (activeServiceForm === service) {
+      // If service is being disabled and it's the active form, clear active form
+      setActiveServiceForm(null);
     }
   };
   
   const moveToQuotation = () => {
+    // Merge form data with service prices
+    const formData = serviceForm.getValues();
+
+    // Copy existing service config to keep prices
+    const updatedConfig = { ...serviceConfig };
+    
+    // Update with form data for each selected service
+    Object.keys(selectedServices).forEach((service) => {
+      const serviceKey = service as ServiceType;
+      if (selectedServices[serviceKey]) {
+        updatedConfig[serviceKey] = {
+          ...formData[serviceKey],
+          ...(updatedConfig[serviceKey] || {}),  // Keep existing price
+        };
+      }
+    });
+    
+    setServiceConfig(updatedConfig);
     setQuoteGenerated(true);
     setActiveTab('quote');
   };
@@ -223,6 +343,10 @@ const Purpose = () => {
       title: "Quote Saved",
       description: "Your quote has been saved to your account.",
     });
+  };
+
+  const handleServiceDetailView = (serviceType: ServiceType) => {
+    setActiveServiceForm(serviceType);
   };
   
   return (
@@ -341,84 +465,125 @@ const Purpose = () => {
                 <CardDescription>Select services to include in your quote</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-6">
-                  <h3 className="text-lg font-medium">Available Services</h3>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <Card 
-                      className={`shadow-sm border-2 ${selectedServices.web ? 'border-primary' : 'border-primary/50'} cursor-pointer hover:border-primary transition-colors`}
-                      onClick={() => toggleService('web')}
-                    >
-                      <CardHeader className="pb-2">
-                        <CardTitle className="text-lg flex items-center">
-                          <Calculator className="h-5 w-5 mr-2" />
-                          Web Security Testing
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <p className="text-sm text-muted-foreground">Assessment of web applications for vulnerabilities</p>
-                        {selectedServices.web && <Check className="h-5 w-5 text-green-500 mt-2" />}
-                      </CardContent>
-                    </Card>
+                <FormProvider {...serviceForm}>
+                  <div className="space-y-6">
+                    <h3 className="text-lg font-medium">Available Services</h3>
                     
-                    <Card 
-                      className={`shadow-sm border-2 ${selectedServices.cloud ? 'border-primary' : 'border-primary/50'} cursor-pointer hover:border-primary transition-colors`}
-                      onClick={() => toggleService('cloud')}
-                    >
-                      <CardHeader className="pb-2">
-                        <CardTitle className="text-lg flex items-center">
-                          <Database className="h-5 w-5 mr-2" />
-                          Cloud Assessment
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <p className="text-sm text-muted-foreground">Review cloud infrastructure and security controls</p>
-                        {selectedServices.cloud && <Check className="h-5 w-5 text-green-500 mt-2" />}
-                      </CardContent>
-                    </Card>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <Card 
+                        className={`shadow-sm border-2 ${selectedServices.web ? 'border-primary' : 'border-primary/50'} cursor-pointer hover:border-primary transition-colors`}
+                        onClick={() => toggleService('web')}
+                      >
+                        <CardHeader className="pb-2">
+                          <CardTitle className="text-lg flex items-center">
+                            <Calculator className="h-5 w-5 mr-2" />
+                            Web Security Testing
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <p className="text-sm text-muted-foreground">Assessment of web applications for vulnerabilities</p>
+                          {selectedServices.web && <Check className="h-5 w-5 text-green-500 mt-2" />}
+                        </CardContent>
+                      </Card>
+                      
+                      <Card 
+                        className={`shadow-sm border-2 ${selectedServices.cloud ? 'border-primary' : 'border-primary/50'} cursor-pointer hover:border-primary transition-colors`}
+                        onClick={() => toggleService('cloud')}
+                      >
+                        <CardHeader className="pb-2">
+                          <CardTitle className="text-lg flex items-center">
+                            <Database className="h-5 w-5 mr-2" />
+                            Cloud Assessment
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <p className="text-sm text-muted-foreground">Review cloud infrastructure and security controls</p>
+                          {selectedServices.cloud && <Check className="h-5 w-5 text-green-500 mt-2" />}
+                        </CardContent>
+                      </Card>
+                      
+                      <Card 
+                        className={`shadow-sm border-2 ${selectedServices.network ? 'border-primary' : 'border-primary/50'} cursor-pointer hover:border-primary transition-colors`}
+                        onClick={() => toggleService('network')}
+                      >
+                        <CardHeader className="pb-2">
+                          <CardTitle className="text-lg flex items-center">
+                            <Network className="h-5 w-5 mr-2" />
+                            Network Pentest
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <p className="text-sm text-muted-foreground">Comprehensive network security assessment</p>
+                          {selectedServices.network && <Check className="h-5 w-5 text-green-500 mt-2" />}
+                        </CardContent>
+                      </Card>
+                      
+                      <Card 
+                        className={`shadow-sm border-2 ${selectedServices.mobile ? 'border-primary' : 'border-primary/50'} cursor-pointer hover:border-primary transition-colors`}
+                        onClick={() => toggleService('mobile')}
+                      >
+                        <CardHeader className="pb-2">
+                          <CardTitle className="text-lg flex items-center">
+                            <Smartphone className="h-5 w-5 mr-2" />
+                            Mobile App Testing
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <p className="text-sm text-muted-foreground">Security assessment for mobile applications</p>
+                          {selectedServices.mobile && <Check className="h-5 w-5 text-green-500 mt-2" />}
+                        </CardContent>
+                      </Card>
+                    </div>
+
+                    {/* This is where we'll render the service-specific forms */}
+                    {activeServiceForm && (
+                      <ServiceFormSelector 
+                        selectedService={activeServiceForm} 
+                        onChange={(newConfig) => {
+                          setServiceConfig(prev => ({
+                            ...prev,
+                            [activeServiceForm]: {
+                              ...prev[activeServiceForm],
+                              ...newConfig
+                            }
+                          }));
+                        }} 
+                      />
+                    )}
                     
-                    <Card 
-                      className={`shadow-sm border-2 ${selectedServices.network ? 'border-primary' : 'border-primary/50'} cursor-pointer hover:border-primary transition-colors`}
-                      onClick={() => toggleService('network')}
-                    >
-                      <CardHeader className="pb-2">
-                        <CardTitle className="text-lg flex items-center">
-                          <Network className="h-5 w-5 mr-2" />
-                          Network Pentest
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <p className="text-sm text-muted-foreground">Comprehensive network security assessment</p>
-                        {selectedServices.network && <Check className="h-5 w-5 text-green-500 mt-2" />}
-                      </CardContent>
-                    </Card>
+                    {/* Services Navigation */}
+                    {Object.values(selectedServices).some(v => v) && (
+                      <div className="flex flex-wrap gap-2 mt-4">
+                        {Object.entries(selectedServices).map(([serviceType, isSelected]) => {
+                          if (!isSelected) return null;
+                          
+                          const type = serviceType as ServiceType;
+                          const isActive = activeServiceForm === type;
+                          
+                          return (
+                            <Button 
+                              key={serviceType}
+                              variant={isActive ? "default" : "outline"}
+                              size="sm"
+                              onClick={() => handleServiceDetailView(type)}
+                            >
+                              {serviceType.charAt(0).toUpperCase() + serviceType.slice(1)}
+                            </Button>
+                          );
+                        })}
+                      </div>
+                    )}
                     
-                    <Card 
-                      className={`shadow-sm border-2 ${selectedServices.mobile ? 'border-primary' : 'border-primary/50'} cursor-pointer hover:border-primary transition-colors`}
-                      onClick={() => toggleService('mobile')}
-                    >
-                      <CardHeader className="pb-2">
-                        <CardTitle className="text-lg flex items-center">
-                          <Smartphone className="h-5 w-5 mr-2" />
-                          Mobile App Testing
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <p className="text-sm text-muted-foreground">Security assessment for mobile applications</p>
-                        {selectedServices.mobile && <Check className="h-5 w-5 text-green-500 mt-2" />}
-                      </CardContent>
-                    </Card>
+                    <div className="flex justify-end">
+                      <Button 
+                        onClick={moveToQuotation}
+                        disabled={!Object.values(selectedServices).some(v => v)}
+                      >
+                        Calculate Quote
+                      </Button>
+                    </div>
                   </div>
-                  
-                  <div className="flex justify-end">
-                    <Button 
-                      onClick={moveToQuotation}
-                      disabled={!Object.values(selectedServices).some(v => v)}
-                    >
-                      Calculate Quote
-                    </Button>
-                  </div>
-                </div>
+                </FormProvider>
               </CardContent>
             </Card>
           </TabsContent>
