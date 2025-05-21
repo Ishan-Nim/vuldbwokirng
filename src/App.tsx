@@ -11,6 +11,7 @@ import Admin from "./pages/Admin";
 import BlogList from "./pages/BlogList";
 import Blog from "./pages/Blog";
 import Purpose from "./pages/Purpose";
+import CVSS from "./pages/CVSS";
 import NotFound from "./pages/NotFound";
 import { useEffect } from "react";
 import { supabase } from "./integrations/supabase/client";
@@ -46,7 +47,7 @@ const SitemapXML = () => {
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <ThemeProvider defaultTheme="light" storageKey="ehow-vulnerability-theme">
+    <ThemeProvider defaultTheme="dark" storageKey="ehow-vulnerability-theme">
       <TooltipProvider>
         <Toaster />
         <Sonner />
@@ -58,6 +59,7 @@ const App = () => (
             <Route path="/blog" element={<MainLayout><BlogList /></MainLayout>} />
             <Route path="/blog/:id" element={<MainLayout><Blog /></MainLayout>} />
             <Route path="/purpose" element={<MainLayout><Purpose /></MainLayout>} />
+            <Route path="/cvss" element={<MainLayout><CVSS /></MainLayout>} />
             <Route path="/sitemap.xml" element={<SitemapXML />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<MainLayout><NotFound /></MainLayout>} />

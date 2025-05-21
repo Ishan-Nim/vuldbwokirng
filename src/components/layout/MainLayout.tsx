@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { useLocation } from 'react-router-dom';
-import { Database, BookOpen, Target } from 'lucide-react';
+import { Database, BookOpen, Target, Calculator } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ThemeToggle } from './ThemeToggle';
 import Logo from './Logo';
@@ -31,6 +31,11 @@ const MainLayout = ({ children }: MainLayoutProps) => {
       name: isAdminPage ? 'CyberSim Quotation' : 'サイバーシム見積', 
       path: '/purpose', 
       icon: <Target className="h-5 w-5" /> 
+    },
+    { 
+      name: isAdminPage ? 'CVSS Calculator' : 'CVSS計算機', 
+      path: '/cvss', 
+      icon: <Calculator className="h-5 w-5" /> 
     },
   ];
 
