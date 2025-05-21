@@ -153,50 +153,14 @@ const CVSS: React.FC = () => {
         </p>
       </div>
 
-      <Card className="mb-6 border-t-4 shadow-md" style={{ borderTopColor: 'var(--primary)' }}>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-lg flex items-center gap-2">
-            <FileCode className="h-5 w-5" />
-            CVSS Vector
-          </CardTitle>
-          <CardDescription>Import or export CVSS vector string</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="flex-1">
-              <Input 
-                id="vector-input"
-                placeholder="CVSS:3.1/AV:N/AC:L/..."
-                value={vectorInput}
-                onChange={(e) => setVectorInput(e.target.value)}
-                className="font-mono text-sm"
-              />
-            </div>
-            <div className="flex gap-2">
-              <Button onClick={handleVectorImport} className="shrink-0 bg-primary/90 hover:bg-primary">
-                Import
-              </Button>
-              <Button onClick={resetCalculator} variant="outline" className="shrink-0 flex items-center gap-1">
-                <RefreshCw className="h-4 w-4" /> Reset
-              </Button>
-            </div>
-          </div>
-          
-          {score && (
-            <div className="mt-4 p-3 bg-muted/50 rounded-md overflow-x-auto">
-              <code className="text-sm font-mono">{score.vector}</code>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
       <div className="grid gap-6 lg:grid-cols-5">
-        <div className="lg:col-span-3">
+        <div className="lg:col-span-3 order-2 lg:order-1">
           <Card className="shadow-md h-full">
             <CardHeader className="pb-2">
-              <CardTitle className="text-lg">Metrics Selection</CardTitle>
+              <CardTitle className="text-lg flex items-center gap-2">Metrics Selection</CardTitle>
               <CardDescription>Select metrics to calculate CVSS score</CardDescription>
             </CardHeader>
+            
             <CardContent>
               <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                 <TabsList className="grid grid-cols-3 mb-6 w-full">
@@ -205,16 +169,16 @@ const CVSS: React.FC = () => {
                   <TabsTrigger value="environmental">Environmental Metrics</TabsTrigger>
                 </TabsList>
                 
-                <div className="p-1 max-h-[580px] overflow-y-auto">
-                  <TabsContent value="base" className="m-0">
+                <div className="max-h-[580px] overflow-y-auto px-2">
+                  <TabsContent value="base" className="m-0 mt-2">
                     <BaseMetricsForm metrics={cvssState.base} onChange={handleBaseChange} />
                   </TabsContent>
                   
-                  <TabsContent value="temporal" className="m-0">
+                  <TabsContent value="temporal" className="m-0 mt-2">
                     <TemporalMetricsForm metrics={cvssState.temporal} onChange={handleTemporalChange} />
                   </TabsContent>
                   
-                  <TabsContent value="environmental" className="m-0">
+                  <TabsContent value="environmental" className="m-0 mt-2">
                     <EnvironmentalMetricsForm metrics={cvssState.environmental} onChange={handleEnvironmentalChange} />
                   </TabsContent>
                 </div>
@@ -223,8 +187,54 @@ const CVSS: React.FC = () => {
           </Card>
         </div>
         
-        <div className="lg:col-span-2">
-          <Card className="shadow-md sticky top-24 h-fit">
+        <div className="lg:col-span-2 order-1 lg:order-2 flex flex-col gap-6">
+          <Card className="shadow-md border-t-4" style={{ borderTopColor: 'var(--primary)' }}>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <FileCode className="h-5 w-5" />
+                CVSS Vector
+              </CardTitle>
+              <CardDescription>Import or export CVSS vector string</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-col gap-3">
+                <div>
+                  <Input 
+                    id="vector-input"
+                    placeholder="CVSS:3.1/AV:N/AC:L/..."
+                    value={vectorInput}
+                    onChange={(e) => setVectorInput(e.target.value)}
+                    className="font-mono text-sm"
+                  />
+                </div>
+                <div className="flex gap-2 justify-between">
+                  <Button 
+                    onClick={handleVectorImport} 
+                    className="shrink-0 bg-primary/90 hover:bg-primary"
+                    size="sm"
+                  >
+                    Import Vector
+                  </Button>
+                  <Button 
+                    onClick={resetCalculator} 
+                    variant="outline" 
+                    className="shrink-0 flex items-center gap-1"
+                    size="sm"
+                  >
+                    <RefreshCw className="h-3.5 w-3.5" /> Reset
+                  </Button>
+                </div>
+                
+                {score && (
+                  <div className="mt-2 p-3 bg-muted/50 rounded-md overflow-x-auto">
+                    <code className="text-sm font-mono break-all">{score.vector}</code>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="shadow-md sticky top-24">
             <CardHeader className="pb-2">
               <CardTitle className="text-lg">CVSS Score Results</CardTitle>
               <CardDescription>Calculated severity and scores</CardDescription>

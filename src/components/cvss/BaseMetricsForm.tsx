@@ -21,9 +21,9 @@ export const BaseMetricsForm: React.FC<BaseMetricsFormProps> = ({
   };
 
   return (
-    <div className="space-y-4">
-      <div>
-        <h3 className="font-medium mb-2">Attack Vector (AV)</h3>
+    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+      <div className="space-y-1.5 bg-muted/30 p-3 rounded-md border">
+        <h3 className="font-medium text-sm mb-2 pb-1 border-b">Attack Vector (AV)</h3>
         <RadioGroup 
           value={metrics.attackVector} 
           onValueChange={(v) => handleChange('attackVector', v)}
@@ -31,25 +31,25 @@ export const BaseMetricsForm: React.FC<BaseMetricsFormProps> = ({
         >
           <div className="flex items-center space-x-2">
             <RadioGroupItem value="N" id="av-n" />
-            <Label htmlFor="av-n">Network (N)</Label>
+            <Label htmlFor="av-n" className="text-sm cursor-pointer">Network (N)</Label>
           </div>
           <div className="flex items-center space-x-2">
             <RadioGroupItem value="A" id="av-a" />
-            <Label htmlFor="av-a">Adjacent (A)</Label>
+            <Label htmlFor="av-a" className="text-sm cursor-pointer">Adjacent (A)</Label>
           </div>
           <div className="flex items-center space-x-2">
             <RadioGroupItem value="L" id="av-l" />
-            <Label htmlFor="av-l">Local (L)</Label>
+            <Label htmlFor="av-l" className="text-sm cursor-pointer">Local (L)</Label>
           </div>
           <div className="flex items-center space-x-2">
             <RadioGroupItem value="P" id="av-p" />
-            <Label htmlFor="av-p">Physical (P)</Label>
+            <Label htmlFor="av-p" className="text-sm cursor-pointer">Physical (P)</Label>
           </div>
         </RadioGroup>
       </div>
 
-      <div>
-        <h3 className="font-medium mb-2">Attack Complexity (AC)</h3>
+      <div className="space-y-1.5 bg-muted/30 p-3 rounded-md border">
+        <h3 className="font-medium text-sm mb-2 pb-1 border-b">Attack Complexity (AC)</h3>
         <RadioGroup 
           value={metrics.attackComplexity} 
           onValueChange={(v) => handleChange('attackComplexity', v)}
@@ -57,17 +57,17 @@ export const BaseMetricsForm: React.FC<BaseMetricsFormProps> = ({
         >
           <div className="flex items-center space-x-2">
             <RadioGroupItem value="L" id="ac-l" />
-            <Label htmlFor="ac-l">Low (L)</Label>
+            <Label htmlFor="ac-l" className="text-sm cursor-pointer">Low (L)</Label>
           </div>
           <div className="flex items-center space-x-2">
             <RadioGroupItem value="H" id="ac-h" />
-            <Label htmlFor="ac-h">High (H)</Label>
+            <Label htmlFor="ac-h" className="text-sm cursor-pointer">High (H)</Label>
           </div>
         </RadioGroup>
       </div>
 
-      <div>
-        <h3 className="font-medium mb-2">Privileges Required (PR)</h3>
+      <div className="space-y-1.5 bg-muted/30 p-3 rounded-md border">
+        <h3 className="font-medium text-sm mb-2 pb-1 border-b">Privileges Required (PR)</h3>
         <RadioGroup 
           value={metrics.privilegesRequired} 
           onValueChange={(v) => handleChange('privilegesRequired', v)}
@@ -75,21 +75,21 @@ export const BaseMetricsForm: React.FC<BaseMetricsFormProps> = ({
         >
           <div className="flex items-center space-x-2">
             <RadioGroupItem value="N" id="pr-n" />
-            <Label htmlFor="pr-n">None (N)</Label>
+            <Label htmlFor="pr-n" className="text-sm cursor-pointer">None (N)</Label>
           </div>
           <div className="flex items-center space-x-2">
             <RadioGroupItem value="L" id="pr-l" />
-            <Label htmlFor="pr-l">Low (L)</Label>
+            <Label htmlFor="pr-l" className="text-sm cursor-pointer">Low (L)</Label>
           </div>
           <div className="flex items-center space-x-2">
             <RadioGroupItem value="H" id="pr-h" />
-            <Label htmlFor="pr-h">High (H)</Label>
+            <Label htmlFor="pr-h" className="text-sm cursor-pointer">High (H)</Label>
           </div>
         </RadioGroup>
       </div>
       
-      <div>
-        <h3 className="font-medium mb-2">User Interaction (UI)</h3>
+      <div className="space-y-1.5 bg-muted/30 p-3 rounded-md border">
+        <h3 className="font-medium text-sm mb-2 pb-1 border-b">User Interaction (UI)</h3>
         <RadioGroup 
           value={metrics.userInteraction} 
           onValueChange={(v) => handleChange('userInteraction', v)}
@@ -97,17 +97,17 @@ export const BaseMetricsForm: React.FC<BaseMetricsFormProps> = ({
         >
           <div className="flex items-center space-x-2">
             <RadioGroupItem value="N" id="ui-n" />
-            <Label htmlFor="ui-n">None (N)</Label>
+            <Label htmlFor="ui-n" className="text-sm cursor-pointer">None (N)</Label>
           </div>
           <div className="flex items-center space-x-2">
             <RadioGroupItem value="R" id="ui-r" />
-            <Label htmlFor="ui-r">Required (R)</Label>
+            <Label htmlFor="ui-r" className="text-sm cursor-pointer">Required (R)</Label>
           </div>
         </RadioGroup>
       </div>
       
-      <div>
-        <h3 className="font-medium mb-2">Scope (S)</h3>
+      <div className="space-y-1.5 bg-muted/30 p-3 rounded-md border">
+        <h3 className="font-medium text-sm mb-2 pb-1 border-b">Scope (S)</h3>
         <RadioGroup 
           value={metrics.scope} 
           onValueChange={(v) => handleChange('scope', v)}
@@ -115,17 +115,17 @@ export const BaseMetricsForm: React.FC<BaseMetricsFormProps> = ({
         >
           <div className="flex items-center space-x-2">
             <RadioGroupItem value="U" id="s-u" />
-            <Label htmlFor="s-u">Unchanged (U)</Label>
+            <Label htmlFor="s-u" className="text-sm cursor-pointer">Unchanged (U)</Label>
           </div>
           <div className="flex items-center space-x-2">
             <RadioGroupItem value="C" id="s-c" />
-            <Label htmlFor="s-c">Changed (C)</Label>
+            <Label htmlFor="s-c" className="text-sm cursor-pointer">Changed (C)</Label>
           </div>
         </RadioGroup>
       </div>
       
-      <div>
-        <h3 className="font-medium mb-2">Confidentiality Impact (C)</h3>
+      <div className="space-y-1.5 bg-muted/30 p-3 rounded-md border">
+        <h3 className="font-medium text-sm mb-2 pb-1 border-b">Confidentiality Impact (C)</h3>
         <RadioGroup 
           value={metrics.confidentiality} 
           onValueChange={(v) => handleChange('confidentiality', v)}
@@ -133,21 +133,21 @@ export const BaseMetricsForm: React.FC<BaseMetricsFormProps> = ({
         >
           <div className="flex items-center space-x-2">
             <RadioGroupItem value="H" id="c-h" />
-            <Label htmlFor="c-h">High (H)</Label>
+            <Label htmlFor="c-h" className="text-sm cursor-pointer">High (H)</Label>
           </div>
           <div className="flex items-center space-x-2">
             <RadioGroupItem value="L" id="c-l" />
-            <Label htmlFor="c-l">Low (L)</Label>
+            <Label htmlFor="c-l" className="text-sm cursor-pointer">Low (L)</Label>
           </div>
           <div className="flex items-center space-x-2">
             <RadioGroupItem value="N" id="c-n" />
-            <Label htmlFor="c-n">None (N)</Label>
+            <Label htmlFor="c-n" className="text-sm cursor-pointer">None (N)</Label>
           </div>
         </RadioGroup>
       </div>
       
-      <div>
-        <h3 className="font-medium mb-2">Integrity Impact (I)</h3>
+      <div className="space-y-1.5 bg-muted/30 p-3 rounded-md border">
+        <h3 className="font-medium text-sm mb-2 pb-1 border-b">Integrity Impact (I)</h3>
         <RadioGroup 
           value={metrics.integrity} 
           onValueChange={(v) => handleChange('integrity', v)}
@@ -155,21 +155,21 @@ export const BaseMetricsForm: React.FC<BaseMetricsFormProps> = ({
         >
           <div className="flex items-center space-x-2">
             <RadioGroupItem value="H" id="i-h" />
-            <Label htmlFor="i-h">High (H)</Label>
+            <Label htmlFor="i-h" className="text-sm cursor-pointer">High (H)</Label>
           </div>
           <div className="flex items-center space-x-2">
             <RadioGroupItem value="L" id="i-l" />
-            <Label htmlFor="i-l">Low (L)</Label>
+            <Label htmlFor="i-l" className="text-sm cursor-pointer">Low (L)</Label>
           </div>
           <div className="flex items-center space-x-2">
             <RadioGroupItem value="N" id="i-n" />
-            <Label htmlFor="i-n">None (N)</Label>
+            <Label htmlFor="i-n" className="text-sm cursor-pointer">None (N)</Label>
           </div>
         </RadioGroup>
       </div>
       
-      <div>
-        <h3 className="font-medium mb-2">Availability Impact (A)</h3>
+      <div className="space-y-1.5 bg-muted/30 p-3 rounded-md border">
+        <h3 className="font-medium text-sm mb-2 pb-1 border-b">Availability Impact (A)</h3>
         <RadioGroup 
           value={metrics.availability} 
           onValueChange={(v) => handleChange('availability', v)}
@@ -177,15 +177,15 @@ export const BaseMetricsForm: React.FC<BaseMetricsFormProps> = ({
         >
           <div className="flex items-center space-x-2">
             <RadioGroupItem value="H" id="a-h" />
-            <Label htmlFor="a-h">High (H)</Label>
+            <Label htmlFor="a-h" className="text-sm cursor-pointer">High (H)</Label>
           </div>
           <div className="flex items-center space-x-2">
             <RadioGroupItem value="L" id="a-l" />
-            <Label htmlFor="a-l">Low (L)</Label>
+            <Label htmlFor="a-l" className="text-sm cursor-pointer">Low (L)</Label>
           </div>
           <div className="flex items-center space-x-2">
             <RadioGroupItem value="N" id="a-n" />
-            <Label htmlFor="a-n">None (N)</Label>
+            <Label htmlFor="a-n" className="text-sm cursor-pointer">None (N)</Label>
           </div>
         </RadioGroup>
       </div>
